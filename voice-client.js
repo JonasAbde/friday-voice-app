@@ -40,6 +40,41 @@ class FridayVoiceClient {
         this.checkOnboarding(); // Show guide for first-time users
         this.setupSuggestionChips(); // Setup quick action chips
         this.setupTranscriptPanel(); // Setup collapsible transcript
+        this.setupDiagnostics(); // Setup diagnostics copy button
+    }
+    
+    /**
+     * Setup diagnostics copy button
+     */
+    setupDiagnostics() {
+        const copyBtn = document.getElementById('copy-diagnostics');
+        if (!copyBtn) return;
+        
+        copyBtn.addEventListener('click', () => {
+            const diagnostics = {
+                timestamp: new Date().toISOString(),
+                connection: {
+                    status: this.ws?.readyState === WebSocket.OPEN ? 'Connected' : 'Disconnected',
+                    ping: this.pingMs ? `${this.pingMs}ms` : 'Unknown',
+                    url: window.location.href
+                },
+                state: this.state,
+                mode: this.currentMode,
+                browser: navigator.userAgent,
+                mobile: this.isMobile,
+                permissions: {
+                    microphone: this.micPermissionGranted
+                },
+                wakeWord: {
+                    available: !!this.wakeWordEngine,
+                    enabled: this.wakeWordEnabled
+                }
+            };
+            
+            const text = JSON.stringify(diagnostics, null, 2);
+            navigator.clipboard.writeText(text);
+            this.showNotification('Diagnostik kopieret! 📋', 'success');
+        });
     }
     
     /**

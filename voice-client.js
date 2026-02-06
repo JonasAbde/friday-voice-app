@@ -261,6 +261,8 @@ class FridayVoiceClient {
         this.micBtn.classList.remove('wake-active');
         this.updateStatus('Listening... 🎤', true);
         this.updateStatusDot('listening');
+        this.setMicGlow(true);
+        this.animateWaveform(true);
         
         try {
             this.recognition.start();
@@ -273,6 +275,8 @@ class FridayVoiceClient {
     stopRecording() {
         this.isRecording = false;
         this.micBtn.classList.remove('recording');
+        this.setMicGlow(false);
+        this.animateWaveform(false);
         
         if (this.wakeWordEnabled) {
             this.micBtn.classList.add('wake-active');
@@ -290,14 +294,16 @@ class FridayVoiceClient {
     
     sendVoiceMessage(transcript) {
         // Add user message to chat
-        this.addMessage('user', transcript);
+        this.addMessageBubble('user', transcript);
         
         // Show processing state
-        this.thinkingIndicator.classList.add('active');
+        this.thinkingIndicator.classList.remove('hidden');
+        this.thinkingIndicator.classList.add('flex');
         this.micBtn.classList.add('processing');
         this.micBtn.classList.remove('recording', 'wake-active');
         this.updateStatus('🧠 Friday is thinking...', true);
         this.updateStatusDot('processing');
+        this.setMicGlow(true);
         
         // Send to Friday server
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
@@ -308,14 +314,18 @@ class FridayVoiceClient {
             }));
         } else {
             this.showError('Not connected to server');
-            this.thinkingIndicator.classList.remove('active');
+            this.thinkingIndicator.classList.add('hidden');
+            this.thinkingIndicator.classList.remove('flex');
             this.micBtn.classList.remove('processing');
+            this.setMicGlow(false);
         }
     }
     
     handleServerMessage(data) {
-        this.thinkingIndicator.classList.remove('active');
+        this.thinkingIndicator.classList.add('hidden');
+        this.thinkingIndicator.classList.remove('flex');
         this.micBtn.classList.remove('processing');
+        this.setMicGlow(false);
         
         // Restore wake word state if enabled
         if (this.wakeWordEnabled) {
@@ -324,7 +334,7 @@ class FridayVoiceClient {
         
         switch (data.type) {
             case 'friday_response':
-                this.addMessage('friday', data.text);
+                this.addMessageBubble('friday', data.text);
                 
                 // Play server-generated audio if available (ElevenLabs)
                 if (data.audioUrl) {
@@ -569,3 +579,65 @@ class FridayVoiceClient {
 document.addEventListener('DOMContentLoaded', () => {
     window.fridayClient = new FridayVoiceClient();
 });
+
+    /**
+     * Enhanced waveform animation
+     */
+    animateWaveform(isActive) {
+        const waveform = document.getElementById('waveform');
+        const bars = waveform.querySelectorAll('.waveform-bar');
+        
+        if (isActive) {
+            bars.forEach(bar => {
+                bar.style.animationPlayState = 'running';
+            });
+        } else {
+            bars.forEach(bar => {
+                bar.style.animationPlayState = 'paused';
+                bar.style.height = '4px';
+            });
+        }
+    }
+    
+    /**
+     * Enhanced mic button glow
+     */
+    setMicGlow(active) {
+        const glow = document.getElementById('mic-glow');
+        if (glow) {
+            glow.style.opacity = active ? '1' : '0';
+        }
+    }
+    
+    /**
+     * Add message to chat with modern bubble design
+     */
+    addMessageBubble(role, text) {
+        const chat = document.getElementById('chat');
+        
+        // Clear placeholder
+        if (chat.querySelector('.text-center')) {
+            chat.innerHTML = '';
+        }
+        
+        const bubble = document.createElement('div');
+        bubble.className = 'message-bubble mb-4 flex ' + (role === 'user' ? 'justify-end' : 'justify-start');
+        
+        const content = document.createElement('div');
+        content.className = role === 'user' 
+            ? 'bg-gradient-to-br from-neon-cyan to-neon-purple text-white px-6 py-3 rounded-2xl max-w-md shadow-lg'
+            : 'glass-card text-white/90 px-6 py-3 rounded-2xl max-w-md';
+        
+        content.textContent = text;
+        bubble.appendChild(content);
+        chat.appendChild(bubble);
+        
+        // Scroll to bottom
+        chat.scrollTop = chat.scrollHeight;
+    }
+}
+
+// Enhance existing addMessage to use new bubble design
+FridayVoiceClient.prototype.addMessage = function(role, text) {
+    this.addMessageBubble(role, text);
+};

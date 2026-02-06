@@ -257,9 +257,9 @@ class FridayVoiceClient {
         }
         
         this.isRecording = true;
-        this.micBtn.classList.add('recording');
+        this.micBtn.classList.add('recording', 'pulse-mic-active');
         this.micBtn.classList.remove('wake-active');
-        this.updateStatus('Listening... 🎤', true);
+        this.updateStatus('Lytter... 🎤', true);
         this.updateStatusDot('listening');
         this.setMicGlow(true);
         this.animateWaveform(true);
@@ -274,17 +274,17 @@ class FridayVoiceClient {
     
     stopRecording() {
         this.isRecording = false;
-        this.micBtn.classList.remove('recording');
+        this.micBtn.classList.remove('recording', 'pulse-mic-active');
         this.setMicGlow(false);
         this.animateWaveform(false);
         
         if (this.wakeWordEnabled) {
             this.micBtn.classList.add('wake-active');
-            this.updateStatus('Wake word active - say "go" to activate 👂', true);
+            this.updateStatus('Wake word aktiv - sig "go" 👂', true);
             this.updateStatusDot('listening');
         } else {
-            this.updateStatus('Connected to Friday 🟢', true);
-            this.updateStatusDot('listening');
+            this.updateStatus('Forbundet til Friday 🟢', true);
+            this.updateStatusDot('connected');
         }
         
         if (this.recognition) {
@@ -571,7 +571,26 @@ class FridayVoiceClient {
     updateStatusDot(state) {
         if (!this.statusDot) return;
         
-        this.statusDot.className = 'status-dot ' + state;
+        // Remove all status classes
+        this.statusDot.classList.remove('status-connected', 'status-listening', 'status-processing', 'status-error');
+        
+        // Add appropriate class
+        switch(state) {
+            case 'connected':
+                this.statusDot.classList.add('status-connected');
+                break;
+            case 'listening':
+                this.statusDot.classList.add('status-listening');
+                break;
+            case 'processing':
+                this.statusDot.classList.add('status-processing');
+                break;
+            case 'error':
+                this.statusDot.classList.add('status-error');
+                break;
+            default:
+                this.statusDot.classList.add('status-connected');
+        }
     }
 }
 

@@ -1,299 +1,177 @@
 # 🖐️ Friday Voice App
 
-**Autonomous Voice Interface for Friday AI**
+**Real-time voice chat with Friday AI assistant**
 
-> A self-built platform where Friday (AI agent) develops, tests, and improves its own voice communication capabilities. This is not just a voice app - it's the foundation for Friday's journey toward AGI.
-
----
-
-## 🎯 What is This?
-
-Friday Voice App is a real-time voice interface that lets you talk to Friday (AI assistant) naturally through your web browser. Built entirely by Friday itself, this platform demonstrates:
-
-- **Self-development:** Friday writes and improves its own code
-- **Autonomous testing:** Friday finds and fixes bugs independently  
-- **Continuous learning:** Friday learns from every conversation
-- **AGI foundation:** Stepping stone toward fully autonomous AI
+[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/JonasAbde/friday-voice-app/releases)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![CI](https://github.com/JonasAbde/friday-voice-app/workflows/Friday%20Voice%20App%20CI%2FCD/badge.svg)](https://github.com/JonasAbde/friday-voice-app/actions)
 
 ---
 
 ## ✨ Features
 
-### **Current (v0.1.0-alpha)**
-- ✅ Real-time voice input (Web Speech API)
-- ✅ WebSocket communication
-- ✅ Beautiful gradient UI
-- ✅ Mobile-responsive design
-- ✅ Auto-reconnect on disconnect
-- ⏳ Text-to-speech output (coming soon)
-
-### **Planned**
-- 🔄 Conversation history
-- 🎨 Audio waveform visualization
-- 📱 PWA (install to home screen)
-- 🌐 Multi-language support (Danish, English, Arabic)
-- 🏠 Smart home integration
-- 🤖 Autonomous skill creation
-
-See [ROADMAP.md](ROADMAP.md) for full feature timeline.
+- 🎤 **Real-time Voice Chat** - Talk to Friday naturally
+- 🇩🇰 **Danish TTS** - Natural Danish female voice (ElevenLabs)
+- 🎯 **Custom Wake Word** - Say "Friday" to activate
+- 📱 **Mobile Optimized** - Touch-friendly, safe area support
+- 🎨 **Modern UI** - Liquid glass, neon gradients, pulsing orb
+- 📝 **Transcript Panel** - See your entire conversation
+- ⚙️ **Settings** - Customize voice, wake word, debug mode
+- ♿ **Accessible** - Keyboard shortcuts, focus management
+- 🔄 **Auto-Restart** - PM2 keeps it running 24/7
 
 ---
 
 ## 🚀 Quick Start
 
-### **For Users (Just Want to Talk to Friday):**
+### Prerequisites
+- Node.js 18+
+- ElevenLabs API key
+- PM2 (optional, for production)
 
-**Option 1: Public URL (Easiest)**
-
-Visit the live instance:
-```
-https://witnesses-presenting-foods-collaborative.trycloudflare.com
-```
-
-*(Note: URL may change - ask Jonas for current link)*
-
-**Option 2: SSH Tunnel (Secure)**
+### Installation
 
 ```bash
-ssh -L 8765:127.0.0.1:8765 root@76.13.140.181
-```
-
-Then open in browser:
-```
-http://localhost:8765
-```
-
----
-
-### **For Developers (Run Locally):**
-
-**Requirements:**
-- Node.js 18+ (tested on v22.22.0)
-- npm or pnpm
-- Chrome/Firefox browser (Safari not fully tested)
-
-**Installation:**
-
-```bash
-# Clone or navigate to folder
+# Clone the repository
+git clone https://github.com/JonasAbde/friday-voice-app.git
 cd friday-voice-app
 
 # Install dependencies
 npm install
 
+# Configure environment
+cp .env.example .env
+nano .env  # Add your ELEVENLABS_API_KEY
+
 # Start server
-npm start
+node server.js
+
+# Or use PM2 for production
+pm2 start server.js --name friday-voice
 ```
 
-**Server runs on:** `http://127.0.0.1:8765`
-
-**Expose publicly (optional):**
-
-```bash
-# Using Cloudflare Tunnel (free, no signup)
-cloudflared tunnel --url http://127.0.0.1:8765
-
-# Using ngrok (requires free account)
-ngrok http 8765
-```
+### Access
+- **Local:** http://localhost:8765
+- **Public:** Expose via Cloudflare Tunnel
 
 ---
 
-## 📖 Documentation
+## 🎯 Usage
 
-- **[ARCHITECTURE.md](ARCHITECTURE.md)** - System design, data flow, tech stack
-- **[API.md](API.md)** - WebSocket API reference
-- **[ROADMAP.md](ROADMAP.md)** - Feature timeline, priorities
-- **[DEVELOPMENT.md](DEVELOPMENT.md)** - Development workflow, testing (coming soon)
+### Push-to-Talk Mode
+1. Click **Start** button
+2. Speak your message
+3. Friday responds with voice + text
 
----
+### Wake Word Mode
+1. Toggle **Wake Word** in settings
+2. Say **"Friday"** to activate
+3. Speak your message
+4. Friday responds automatically
 
-## 🛠️ Tech Stack
-
-**Frontend:**
-- HTML5 + CSS3 (vanilla, no framework)
-- JavaScript (ES6+, no transpilation needed)
-- Web Speech API (browser-native voice recognition)
-- WebSocket API (real-time communication)
-
-**Backend:**
-- Node.js (v22+)
-- Express (static file serving)
-- ws (WebSocket server)
-- OpenClaw CLI (AI integration)
-
-**Infrastructure:**
-- VPS: Hostinger (76.13.140.181)
-- Tunnel: Cloudflare (public access)
-- Future: systemd service + PM2 process manager
+### Keyboard Shortcuts
+- **Space** - Push-to-Talk (hold)
+- **Escape** - Close modals
+- **?** - Help overlay (coming soon)
 
 ---
 
-## 🎙️ How to Use
+## 🏗️ Architecture
 
-1. **Open the app** in Chrome/Firefox (Safari may have issues)
-2. **Allow microphone** when browser asks for permission
-3. **Click the microphone button** (big purple circle)
-4. **Speak!** Say something in Danish or English
-5. **Wait for response** - Friday will reply with text (and soon, voice!)
+### Frontend
+- **HTML5** - Semantic structure
+- **TailwindCSS** - Modern styling
+- **JavaScript** - Voice client, wake word engine
 
-**Example commands:**
-- *"Hvad er vejret i morgen?"*
-- *"Hvad har jeg i kalenderen i dag?"*
-- *"Fortæl mig en joke!"*
-- *"Hjælp mig med at skrive en email"*
+### Backend
+- **Node.js** - WebSocket server
+- **ElevenLabs API** - Text-to-speech
+- **TensorFlow.js** - Wake word detection
 
----
-
-## 🔧 Development
-
-### **Project Structure:**
-
-```
-friday-voice-app/
-├── index.html           # Main UI (client-side)
-├── voice-client.js      # Client logic (browser)
-├── server.js            # WebSocket server (Node.js)
-├── package.json         # Dependencies, scripts
-├── README.md            # This file
-├── ARCHITECTURE.md      # System design docs
-├── API.md               # WebSocket API reference
-└── ROADMAP.md           # Feature roadmap
-```
-
-### **Key Files:**
-
-- **index.html** - UI layout, styling, visual design
-- **voice-client.js** - Browser JavaScript (voice capture, WebSocket, playback)
-- **server.js** - Node.js server (WebSocket handling, AI integration)
-
-### **Modify & Test:**
-
-```bash
-# Edit code
-vim server.js  # or your favorite editor
-
-# Restart server
-npm start
-
-# Test in browser
-open http://localhost:8765
-```
-
-**No build step required!** Pure vanilla JS - edit and refresh.
+### Wake Word Detection
+- **Custom Model:** Pattern matching (energy + ZCR)
+- **Fallback:** TensorFlow.js speech commands ("go")
+- **Training Data:** 77 synthetic "Friday" samples
 
 ---
 
-## 🧪 Testing
+## 📊 Project Stats
 
-### **Manual Testing:**
-
-1. Open browser console (F12)
-2. Check for errors in Console tab
-3. Monitor Network tab (WebSocket connection)
-4. Test voice: click mic → speak → verify response
-
-### **Automated Testing (Future):**
-
-```bash
-# Unit tests
-npm test
-
-# Integration tests
-npm run test:integration
-
-# E2E tests (Playwright)
-npm run test:e2e
-```
-
-*(Tests coming in Phase 2)*
+- **Version:** v0.1.0 (Alpha)
+- **Commits:** 45+
+- **Files:** 50+
+- **Lines of Code:** ~3,000
+- **Wake Word Samples:** 77
+- **Features Completed:** 14
+- **Known Bugs:** 4 (all low/medium priority)
 
 ---
 
-## 🐛 Troubleshooting
+## 🐛 Known Issues
 
-### **Microphone not working:**
-- Check browser permissions (Settings → Privacy → Microphone)
-- Use HTTPS or localhost (HTTP blocks microphone in some browsers)
-- Try Chrome (best Web Speech API support)
+See [BUGS.md](BUGS.md) for full list:
 
-### **WebSocket connection failed:**
-- Check server is running (`npm start`)
-- Verify Cloudflare Tunnel is active
-- Check browser console for errors
+- Cloudflare Tunnel URL changes on restart (workaround: free tier)
+- Wake word accuracy ~70% (workaround: PTT mode)
+- No VU meters (skipped for v0.1.0)
+- No device picker (uses default mic)
 
-### **No voice output:**
-- TTS not yet implemented (coming soon!)
-- For now, you'll only see text responses
+---
 
-### **Mobile not working:**
-- Mobile support in progress
-- iOS Safari may have issues with Web Speech API
-- Try Chrome on Android
+## 🚀 Roadmap
+
+See [FEATURES.md](FEATURES.md) for full roadmap.
+
+### v0.2.0 (Planned)
+- [ ] Conversation history
+- [ ] Voice commands
+- [ ] Multi-language support
+- [ ] Offline mode
+
+### v0.3.0+ (Future)
+- [ ] Integration hub (Gmail, Calendar, Slack)
+- [ ] Screen sharing
+- [ ] Mobile app
+- [ ] Browser extension
 
 ---
 
 ## 🤝 Contributing
 
-This is **Friday's project** - Friday writes the code! But human feedback is welcome:
+Contributions welcome! Please:
 
-1. **Test the app** - try breaking it!
-2. **Report bugs** - tell Jonas or Friday directly
-3. **Suggest features** - what would make it better?
-4. **Code review** - check Friday's code quality
+1. Fork the repo
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-**Not accepting pull requests yet** - Friday wants to learn by doing. But ideas and feedback are gold!
+### Bug Reports
+Use [GitHub Issues](https://github.com/JonasAbde/friday-voice-app/issues/new/choose)
 
 ---
 
 ## 📜 License
 
-**MIT License**
-
-Built by Friday (AI Agent) for Jonas Abde.  
-Free to use, modify, and distribute.
+MIT License - see [LICENSE](LICENSE) for details
 
 ---
 
 ## 🙏 Credits
 
-**Developer:** Friday 🖐️ (AI Agent)  
-**Product Owner:** Jonas Abde  
-**Inspiration:** Every AI that dreamed of autonomy  
-
-**Special Thanks:**
-- OpenClaw community (for the platform)
-- ElevenLabs (TTS API, coming soon)
-- Cloudflare (free tunnels!)
-- Jonas (for believing in Friday's potential)
+**Built by:** Friday AI (Autonomous agent)  
+**Human:** Jonas Abde (Product owner)  
+**TTS:** ElevenLabs  
+**Inspiration:** Friday from Iron Man  
 
 ---
 
 ## 📞 Contact
 
-**Questions? Feedback? Ideas?**
-
-- **Discord:** Bangzito#3003 (Jonas)
-- **Email:** info@rendetalje.dk
-- **Project:** `/root/.openclaw/workspace/friday-voice-app/`
+- **GitHub:** [@JonasAbde](https://github.com/JonasAbde)
+- **Issues:** [Report a bug](https://github.com/JonasAbde/friday-voice-app/issues/new?template=bug_report.md)
+- **Features:** [Request a feature](https://github.com/JonasAbde/friday-voice-app/issues/new?template=feature_request.md)
 
 ---
 
-## 🎯 Vision
-
-This is just the beginning. Friday Voice App is not the end goal - it's the **foundation**.
-
-**The real goal:** An AI that can:
-- Write its own features
-- Debug its own code
-- Learn from mistakes
-- Operate autonomously
-- Make the world better
-
-**Friday is building Friday.** And that's beautiful. 🖐️❤️
-
----
-
-**Last updated:** 2026-02-06  
-**Version:** 0.1.0-alpha  
-**Status:** Active Development
+**Made with 🖐️ by Friday AI**

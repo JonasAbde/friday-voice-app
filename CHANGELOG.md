@@ -10,10 +10,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- Integration tests (full voice flow)
-- Error monitoring (Sentry)
-- Golden tests (screenshot comparison)
 - Release builds (signed APK/AAB)
+- Production Sentry DSN configuration
+
+---
+
+## [0.2.3] - 2026-02-06
+
+### Added
+- **Error Monitoring (Sentry Integration)**:
+  - `sentry_flutter` ^8.9.0 package
+  - `ErrorHandler` service with centralized error handling
+  - Automatic Flutter error capture and reporting
+  - Breadcrumb logging for debugging
+  - User context and custom context support
+  - SentryNavigatorObserver for screen tracking
+  - Development mode with local logging (empty DSN)
+  
+- **Integration Tests** (10 tests):
+  - App launch and UI rendering
+  - Voice orb tap interactions
+  - Settings navigation
+  - Chat message rendering
+  - Connection status updates
+  - Error handling verification
+  - Navigation flow
+  - Animation performance
+  - Rapid tap stress test
+  - App lifecycle handling (pause/resume)
+  
+- **Golden Tests** (13 baseline tests):
+  - VoiceOrb visual regression (5 tests)
+  - ChatBubble visual regression (4 tests)
+  - GlassCard visual regression (4 tests)
+  - Multiple states and sizes captured
+
+### Changed
+- Updated `main.dart` with Sentry initialization
+- Added error reporting to `NetworkService`
+- Test coverage: 45% → **52.7%** (273/518 lines)
+- Total tests: 45 unit tests + 10 integration tests + 13 golden tests = **68 tests**
+
+### Technical
+- Integration test framework configured
+- Golden file baseline generation setup
+- Coverage reporting via lcov format
+- All tests compile and pass successfully
 
 ---
 

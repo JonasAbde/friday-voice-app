@@ -5,6 +5,7 @@ import 'package:rxdart/rxdart.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/io.dart';
 import '../models/connection_state.dart';
+import '../core/error/error_handler.dart';
 
 /// WebSocket network service with automatic reconnection
 /// 
@@ -152,6 +153,17 @@ class NetworkService {
   /// Handle WebSocket error
   void _handleError(dynamic error) {
     print('WebSocket error: $error');
+    
+    // Report to error handler
+    ErrorHandler.handleError(
+      error,
+      context: 'NetworkService.WebSocket',
+      extras: {
+        'wsUrl': wsUrl,
+        'reconnectAttempts': _reconnectAttempts,
+      },
+    );
+    
     _updateConnectionState(
       ConnectionState(
         status: ConnectionStatus.error,

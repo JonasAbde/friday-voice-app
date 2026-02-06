@@ -28,6 +28,9 @@ dependencies:
   # Networking
   web_socket_channel: ^3.0.1
   rxdart: ^0.28.0
+  
+  # Error Monitoring
+  sentry_flutter: ^8.9.0
 
 dev_dependencies:
   flutter_test:
@@ -40,6 +43,8 @@ dev_dependencies:
   # Testing
   bloc_test: ^9.1.7           # BLoC testing utilities
   mocktail: ^1.0.4            # Mocking (better than mockito for null-safety)
+  integration_test:           # Integration testing
+    sdk: flutter
   
   # Icon Generation
   flutter_launcher_icons: ^0.13.1

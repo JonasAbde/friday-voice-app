@@ -8,15 +8,18 @@ class FridayVoiceClient {
         this.mediaRecorder = null;
         this.audioChunks = [];
         this.recognition = null;
+        this.wakeWordEngine = null; // Wake word detection
+        this.wakeWordEnabled = false; // Toggle for always-listening mode
         
         this.init();
     }
     
-    init() {
+    async init() {
         this.setupUI();
         this.connectWebSocket();
         this.setupSpeechRecognition();
         this.loadVoices(); // Load available voices on init
+        await this.setupWakeWord(); // Initialize wake word detection
     }
     
     /**
@@ -41,6 +44,62 @@ class FridayVoiceClient {
         
         // Trigger voice loading
         window.speechSynthesis.getVoices();
+    }
+    
+    /**
+     * Setup Wake Word Detection Engine
+     * Enables "Friday" wake word for hands-free activation
+     */
+    async setupWakeWord() {
+        try {
+            this.wakeWordEngine = new WakeWordEngine();
+            const success = await this.wakeWordEngine.init();
+            
+            if (success) {
+                console.log('✅ Wake Word Engine ready!');
+                console.log('💡 Click mic button to enable always-listening mode');
+                
+                // Update UI to show wake word capability
+                this.micBtn.title = 'Click to enable wake word detection (say "go" to activate)';
+            }
+        } catch (error) {
+            console.error('⚠️  Wake Word Engine unavailable:', error.message);
+            console.log('📌 Falling back to manual activation only');
+        }
+    }
+    
+    /**
+     * Enable wake word detection (always-listening mode)
+     */
+    async enableWakeWord() {
+        if (!this.wakeWordEngine) {
+            this.showError('Wake word detection not available');
+            return;
+        }
+        
+        this.wakeWordEnabled = true;
+        this.updateStatus('Wake word active - say "go" to activate 👂', true);
+        
+        // Start listening for wake word
+        await this.wakeWordEngine.startListening((word, confidence) => {
+            console.log(`🎯 Wake word detected: ${word} (${(confidence * 100).toFixed(1)}%)`);
+            
+            // Auto-start recording when wake word detected
+            if (!this.isRecording) {
+                this.startRecording();
+            }
+        });
+    }
+    
+    /**
+     * Disable wake word detection
+     */
+    disableWakeWord() {
+        if (this.wakeWordEngine && this.wakeWordEnabled) {
+            this.wakeWordEngine.stopListening();
+            this.wakeWordEnabled = false;
+            this.updateStatus('Wake word disabled', true);
+        }
     }
     
     setupUI() {
@@ -109,6 +168,19 @@ class FridayVoiceClient {
     }
     
     toggleRecording() {
+        // If wake word is enabled, disable it
+        if (this.wakeWordEnabled) {
+            this.disableWakeWord();
+            return;
+        }
+        
+        // If not recording and wake word available, enable it
+        if (!this.isRecording && this.wakeWordEngine) {
+            this.enableWakeWord();
+            return;
+        }
+        
+        // Otherwise, toggle recording normally
         if (this.isRecording) {
             this.stopRecording();
         } else {

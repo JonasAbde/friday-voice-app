@@ -232,16 +232,37 @@ class FridayVoiceClient {
     loadVoices() {
         if (!('speechSynthesis' in window)) return;
         
+        const voiceSelect = document.getElementById('voice-select');
+        
+        // Show loading state with spinner
+        voiceSelect.innerHTML = '<option><span class="loading-spinner"></span> Indlæser stemmer...</option>';
+        voiceSelect.classList.add('skeleton');
+        
+        // Timeout after 5 seconds
+        const timeout = setTimeout(() => {
+            voiceSelect.classList.remove('skeleton');
+            voiceSelect.innerHTML = '<option disabled>⚠️ Kunne ikke indlæse stemmer</option><option value="retry">🔄 Prøv igen</option>';
+        }, 5000);
+        
         // Voices load asynchronously, so we need to listen for the event
         window.speechSynthesis.addEventListener('voiceschanged', () => {
+            clearTimeout(timeout);
+            
             const voices = window.speechSynthesis.getVoices();
             const danishVoices = voices.filter(v => v.lang.startsWith('da'));
             
             console.log('📢 Available voices:', voices.length);
             console.log('🇩🇰 Danish voices:', danishVoices.map(v => v.name).join(', ') || 'None found');
             
-            if (danishVoices.length === 0) {
-                console.warn('⚠️ No Danish TTS voices available - will use system default');
+            voiceSelect.classList.remove('skeleton');
+            
+            if (voices.length > 0) {
+                voiceSelect.innerHTML = voices.map(v => 
+                    `<option value="${v.name}">${v.name} (${v.lang})</option>`
+                ).join('');
+            } else {
+                voiceSelect.innerHTML = '<option>Standard stemme</option>';
+                console.warn('⚠️ No TTS voices available - using default');
             }
         });
         
@@ -815,11 +836,12 @@ class FridayVoiceClient {
      */
     replayLastResponse() {
         if (!this.lastFridayResponse) {
-            this.showError('No response to replay');
+            this.showNotification('Ingen optagelse endnu - start en samtale først', 'error');
             return;
         }
         
         console.log('🔄 Replaying last response...');
+        this.setState('speaking');
         this.playTTS(this.lastFridayResponse);
     }
     

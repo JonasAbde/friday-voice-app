@@ -8,11 +8,14 @@ class FridayVoiceClient {
         this.mediaRecorder = null;
         this.audioChunks = [];
         this.recognition = null;
-        this.wakeWordEngine = null; // Wake word detection
-        this.wakeWordEnabled = false; // Toggle for always-listening mode
-        this.currentMode = 'wake'; // 'wake' or 'push'
-        this.lastFridayResponse = null; // For replay functionality
-        this.audioVolume = 0.7; // Default volume
+        this.wakeWordEngine = null;
+        this.wakeWordEnabled = false;
+        this.currentMode = 'push'; // Default to 'push' (simpler)
+        this.lastFridayResponse = null;
+        this.audioVolume = 0.7;
+        
+        // Master state machine (5 states)
+        this.state = 'idle'; // idle | listening | transcribing | thinking | speaking
         
         this.init();
     }
@@ -146,6 +149,76 @@ class FridayVoiceClient {
             container.classList.add('orb-pulsing');
         } else if (state === 'processing') {
             container.classList.add('orb-spinning');
+        }
+    }
+    
+    /**
+     * Master state update (5 states)
+     * Updates UI + orb based on current state
+     */
+    setState(newState) {
+        this.state = newState;
+        
+        // Update status text (100% dansk)
+        const statusMessages = {
+            'idle': '😴 Klar',
+            'listening': '👂 Lytter...',
+            'transcribing': '📝 Transskriberer...',
+            'thinking': '🧠 Friday tænker...',
+            'speaking': '🔊 Friday taler...'
+        };
+        
+        this.updateStatus(statusMessages[newState] || 'Klar', true);
+        
+        // Update orb state
+        if (newState === 'listening') {
+            this.setOrbState('listening');
+        } else if (newState === 'thinking' || newState === 'transcribing') {
+            this.setOrbState('processing');
+        } else if (newState === 'speaking') {
+            this.setOrbState('processing');
+        } else {
+            this.setOrbState('idle');
+        }
+        
+        // Update button states
+        this.updateButtonStates();
+    }
+    
+    /**
+     * Smart button enable/disable based on state
+     */
+    updateButtonStates() {
+        const micBtn = this.micBtn;
+        const stopBtn = this.stopBtn;
+        const replayBtn = this.replayBtn;
+        
+        // Start button: enabled only in idle state
+        if (this.state === 'idle') {
+            micBtn.disabled = false;
+            micBtn.textContent = '🎤 Start';
+        } else {
+            micBtn.disabled = true;
+        }
+        
+        // Stop button: enabled during listening/transcribing
+        if (this.state === 'listening' || this.state === 'transcribing') {
+            stopBtn.disabled = false;
+            stopBtn.classList.remove('hidden');
+        } else {
+            stopBtn.disabled = true;
+            stopBtn.classList.add('hidden');
+        }
+        
+        // Replay button: only enabled if we have audio
+        if (this.lastFridayResponse && this.state === 'idle') {
+            replayBtn.disabled = false;
+            replayBtn.classList.remove('hidden');
+        } else {
+            replayBtn.disabled = true;
+            if (!this.lastFridayResponse) {
+                replayBtn.classList.add('hidden');
+            }
         }
     }
     
@@ -415,16 +488,13 @@ class FridayVoiceClient {
     
     startRecording() {
         if (!this.recognition) {
-            this.showError('Speech recognition not available');
+            this.showNotification('Mikrofon ikke tilgængelig', 'error');
             return;
         }
         
         this.isRecording = true;
-        this.setOrbState('listening'); // Update orb to listening state
-        this.micBtn.classList.add('recording', 'pulse-mic-active');
-        this.micBtn.classList.remove('wake-active');
-        this.updateStatus('Lytter... 🎤', true);
-        this.updateStatusDot('listening');
+        this.setState('listening'); // Master state update
+        this.micBtn.classList.add('recording');
         this.setMicGlow(true);
         this.animateWaveform(true);
         
@@ -433,13 +503,14 @@ class FridayVoiceClient {
         } catch (e) {
             console.error('Failed to start recording:', e);
             this.stopRecording();
+            this.showNotification('Kunne ikke starte optagelse', 'error');
         }
     }
     
     stopRecording() {
         this.isRecording = false;
-        this.setOrbState('idle'); // Return orb to idle state
-        this.micBtn.classList.remove('recording', 'pulse-mic-active');
+        this.setState('idle'); // Return to idle
+        this.micBtn.classList.remove('recording');
         this.setMicGlow(false);
         this.animateWaveform(false);
         

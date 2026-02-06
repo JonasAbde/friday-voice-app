@@ -141,10 +141,80 @@ class FridayVoiceServer {
             case 'voice_message':
                 await this.processVoiceMessage(ws, message.transcript);
                 break;
+            
+            case 'canvasUpdate':
+                // Real-time canvas sync
+                await this.handleCanvasUpdate(ws, message);
+                break;
+            
+            case 'canvasSave':
+                // Save canvas version
+                await this.handleCanvasSave(ws, message);
+                break;
+            
+            case 'canvasLoad':
+                // Load canvas state
+                await this.handleCanvasLoad(ws);
+                break;
                 
             default:
                 console.warn('Unknown message type:', message.type);
         }
+    }
+    
+    async handleCanvasUpdate(ws, message) {
+        console.log('🎨 Canvas update received');
+        
+        // Store in session (could be enhanced with database)
+        if (!ws.canvasState) {
+            ws.canvasState = {};
+        }
+        
+        ws.canvasState = {
+            content: message.content,
+            canvasType: message.canvasType,
+            language: message.language,
+            lastModified: new Date().toISOString()
+        };
+        
+        // Broadcast to other clients (for collaboration)
+        this.clients.forEach(client => {
+            if (client !== ws && client.readyState === WebSocket.OPEN) {
+                this.send(client, {
+                    type: 'canvasUpdate',
+                    content: message.content,
+                    canvasType: message.canvasType,
+                    language: message.language
+                });
+            }
+        });
+    }
+    
+    async handleCanvasSave(ws, message) {
+        console.log('💾 Canvas version saved');
+        
+        // Store version (could be enhanced with database)
+        if (!ws.canvasVersions) {
+            ws.canvasVersions = [];
+        }
+        
+        ws.canvasVersions.push(message.version);
+        
+        this.send(ws, {
+            type: 'canvasSaved',
+            success: true,
+            versionCount: ws.canvasVersions.length
+        });
+    }
+    
+    async handleCanvasLoad(ws) {
+        console.log('📂 Canvas state requested');
+        
+        this.send(ws, {
+            type: 'canvasLoaded',
+            state: ws.canvasState || null,
+            versions: ws.canvasVersions || []
+        });
     }
     
     async processVoiceMessage(ws, transcript) {

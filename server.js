@@ -147,21 +147,36 @@ class FridayVoiceServer {
         }
     }
     
+    /**
+     * Send message to Friday AI via OpenClaw agent command
+     * @param {string} message - User's message text
+     * @returns {Promise<string>} Friday's response
+     */
     async askFriday(message) {
-        // Call Friday via OpenClaw CLI
+        // Call Friday via OpenClaw CLI (correct command: "agent" not "chat")
         return new Promise((resolve, reject) => {
-            const command = `openclaw chat --agent main --message "${message.replace(/"/g, '\\"')}" --no-stream`;
+            // Escape double quotes in message
+            const escapedMessage = message.replace(/"/g, '\\"');
+            const command = `openclaw agent --agent main --message "${escapedMessage}"`;
             
-            exec(command, { maxBuffer: 1024 * 1024 }, (error, stdout, stderr) => {
+            console.log('🤖 Calling Friday AI...');
+            
+            exec(command, { maxBuffer: 1024 * 1024, timeout: 30000 }, (error, stdout, stderr) => {
                 if (error) {
-                    console.error('Error calling Friday:', error);
+                    console.error('❌ Error calling Friday:', error.message);
                     reject(error);
                     return;
                 }
                 
                 // Extract Friday's response from output
+                // Filter out system messages (lines starting with [ or empty)
                 const lines = stdout.split('\n');
-                const response = lines.filter(l => l.trim() && !l.startsWith('[')).join('\n');
+                const response = lines
+                    .filter(l => l.trim() && !l.startsWith('[') && !l.includes('session_status'))
+                    .join('\n')
+                    .trim();
+                
+                console.log('✅ Friday responded:', response.substring(0, 50) + '...');
                 
                 resolve(response || 'Jeg hørte dig, men har intet at sige lige nu.');
             });

@@ -17,6 +17,9 @@ class FridayVoiceClient {
         // Master state machine (5 states)
         this.state = 'idle'; // idle | listening | transcribing | thinking | speaking
         
+        // Mobile detection
+        this.isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        
         this.init();
     }
     
@@ -790,7 +793,12 @@ class FridayVoiceClient {
             this.modeWake.classList.add('border-transparent', 'opacity-60');
             
             this.disableWakeWord();
-            this.setState('idle'); // Update to idle state with danish text
+            this.setState('idle');
+            
+            // Update button text for mobile
+            if (this.isMobile) {
+                this.modePush.innerHTML = '🎙️ Hold for at tale';
+            }
         }
     }
     

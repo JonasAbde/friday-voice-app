@@ -475,7 +475,7 @@ class FridayVoiceClient {
                 console.log('💡 Click mic button to enable always-listening mode');
                 
                 // Update UI to show wake word capability
-                this.micBtn.title = 'Click to enable wake word detection (say "go" to activate)';
+                this.micBtn.title = 'Click to enable wake word detection (sig "Friday" to activate)';
             }
         } catch (error) {
             console.error('⚠️  Wake Word Engine unavailable:', error.message);
@@ -509,7 +509,7 @@ class FridayVoiceClient {
         
         this.wakeWordEnabled = true;
         this.micBtn.classList.add('wake-active');
-        this.updateStatus('Wake word active - say "go" to activate 👂', true);
+        this.updateStatus('Wake word active - sig "Friday" to activate 👂', true);
         this.updateStatusDot('listening');
         
         // Start listening for wake word
@@ -844,7 +844,7 @@ class FridayVoiceClient {
         
         if (this.wakeWordEnabled) {
             this.micBtn.classList.add('wake-active');
-            this.updateStatus('Wake word aktiv - sig "go" 👂', true);
+            this.updateStatus('Wake word aktiv - sig "Friday" 👂', true);
             this.updateStatusDot('listening');
         } else {
             this.updateStatus('Forbundet til Friday 🟢', true);
@@ -950,7 +950,7 @@ class FridayVoiceClient {
         audio.addEventListener('ended', () => {
             this.updateStatusDot('listening');
             if (this.wakeWordEnabled) {
-                this.updateStatus('Wake word active - say "go" to activate 👂', true);
+                this.updateStatus('Wake word active - sig "Friday" to activate 👂', true);
             }
         });
     }

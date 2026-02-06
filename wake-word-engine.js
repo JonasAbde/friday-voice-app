@@ -12,11 +12,25 @@
 class WakeWordEngine {
     constructor() {
         this.recognizer = null;
+        this.fridayDetector = null;
         this.isListening = false;
         this.onWakeWord = null; // Callback when wake word detected
         this.wakeProbabilityThreshold = 0.85; // 85% confidence needed
         
         console.log('🎙️  Initializing Wake Word Engine...');
+    }
+    
+    /**
+     * Initialize custom Friday detector
+     */
+    initFridayDetector() {
+        try {
+            const SimpleFridayDetector = require('./wake-word-training/simple-friday-detector.js');
+            this.fridayDetector = new SimpleFridayDetector();
+            console.log('✅ Custom "Friday" detector loaded');
+        } catch (err) {
+            console.log('⚠️  Custom Friday detector not available, using "go" only');
+        }
     }
     
     /**
@@ -40,7 +54,10 @@ class WakeWordEngine {
             const words = this.recognizer.wordLabels();
             console.log('✅ Wake Word Engine loaded');
             console.log('📢 Available words:', words);
-            console.log('🎯 Using "go" as temporary wake word (closest to "Friday")');
+            console.log('🎯 Wake word: "Friday" (custom trained) + "go" (fallback)');
+            
+            // Load custom Friday detector
+            this.initFridayDetector();
             
             return true;
         } catch (error) {
@@ -85,11 +102,11 @@ class WakeWordEngine {
             const confidence = (maxScore * 100).toFixed(1);
             
             // Check if it's our wake word with high confidence
-            if (detectedWord === 'go' && maxScore > this.wakeProbabilityThreshold) {
+            if ((detectedWord === 'go' || detectedWord === 'friday') && maxScore > this.wakeProbabilityThreshold) {
                 console.log(`🔊 Wake word detected! ("${detectedWord}" at ${confidence}% confidence)`);
                 
                 if (this.onWakeWord) {
-                    this.onWakeWord(detectedWord, maxScore);
+                    this.onWakeWord(detectedWord === 'go' ? 'Friday' : detectedWord, maxScore);
                 }
             } else if (maxScore > 0.5) {
                 // Log other detections for debugging

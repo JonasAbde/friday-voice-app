@@ -1,0 +1,35 @@
+# Git attributes for proper language detection
+
+# Documentation
+*.md linguist-documentation
+*.txt linguist-documentation
+
+# Generated files (exclude from stats)
+*.lock linguist-generated
+pubspec.lock linguist-generated
+package-lock.json linguist-generated
+
+# Vendored code (exclude from stats)
+node_modules/* linguist-vendored
+flutter/build/* linguist-vendored
+
+# Language overrides
+*.dart linguist-language=Dart
+*.js linguist-language=JavaScript
+*.html linguist-language=HTML
+*.css linguist-language=CSS
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.ttf binary
+*.woff binary
+*.woff2 binary
+
+# Line endings
+* text=auto
+*.sh text eol=lf
+*.bat text eol=crlf

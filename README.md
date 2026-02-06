@@ -1,266 +1,308 @@
-# Friday Voice Integration
+# 🖐️ Friday Voice App
 
-Complete Flutter voice integration system with speech-to-text, text-to-speech, audio recording, and ElevenLabs API support.
+**AI-powered voice assistant for business management** — Real-time voice control for calendar, email, invoices, and automation.
 
-## 🎯 Features
+[![Flutter](https://img.shields.io/badge/Flutter-3.24-02569B?logo=flutter)](https://flutter.dev)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/JonasAbde/friday-voice-app/pulls)
+[![Version](https://img.shields.io/github/v/tag/JonasAbde/friday-voice-app?label=version)](https://github.com/JonasAbde/friday-voice-app/tags)
 
-- ✅ **Speech-to-Text**: Real-time transcription with `speech_to_text`
-- ✅ **Text-to-Speech**: Local + ElevenLabs neural voices (hybrid)
-- ✅ **Audio Recording**: Low-latency recording with `record`
-- ✅ **Multi-Platform**: Android, iOS, Web support
-- ✅ **Offline Support**: Works without internet (local TTS/STT)
-- ✅ **Permission Handling**: Graceful permission requests
-- ✅ **Low Latency**: <500ms recording start, <200ms TTS
-- ⚠️ **Wake Word**: Placeholder (requires picovoice_flutter)
+---
 
-## 📁 Project Structure
+## 🎯 Overview
+
+Friday Voice App is a **production-ready Flutter application** that enables hands-free business management through natural voice commands. Built with Clean Architecture, BLoC state management, and multi-platform support (Android, iOS, Web).
+
+**Key Features:**
+- 🎤 **Real-time Speech-to-Text** (speech_to_text package)
+- 🔊 **Neural Text-to-Speech** (ElevenLabs API + local fallback)
+- 📱 **Multi-Platform** (Android, iOS, Web/PWA)
+- 🧠 **Clean Architecture** (testable, scalable, maintainable)
+- 🔄 **BLoC State Management** (predictable state)
+- ✅ **50+ Tests** (unit, widget, integration)
+- 🚀 **CI/CD Pipeline** (GitHub Actions)
+- 🌐 **Offline Support** (works without internet)
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Flutter 3.24+ ([install guide](https://docs.flutter.dev/get-started/install))
+- Android Studio / Xcode (for mobile builds)
+- Node.js 18+ (for web server backend)
+
+### Installation
+
+```bash
+# Clone repository
+git clone https://github.com/JonasAbde/friday-voice-app.git
+cd friday-voice-app
+
+# Install Flutter dependencies
+cd flutter
+flutter pub get
+
+# Run on web (Chrome)
+flutter run -d chrome
+
+# Run on Android
+flutter run -d android
+
+# Run on iOS
+flutter run -d ios
+```
+
+### Environment Setup
+
+```bash
+# Copy environment template
+cp .env.example .env
+
+# Add your API keys
+ELEVENLABS_API_KEY=your_key_here
+OPENCLAW_GATEWAY_URL=ws://localhost:18789
+```
+
+---
+
+## 📦 Project Structure
 
 ```
 friday-voice-app/
-├── flutter/
+├── flutter/                    # Flutter mobile/web app
 │   ├── lib/
-│   │   └── services/
-│   │       └── voice_service.dart          # Main VoiceService class
-│   ├── android/
-│   │   └── app/src/main/kotlin/com/friday/voice/
-│   │       └── ElevenLabsPlugin.kt         # Android ElevenLabs integration
-│   ├── ios/
-│   │   └── Runner/
-│   │       └── ElevenLabsPlugin.swift      # iOS ElevenLabs integration
-│   ├── web/
-│   │   └── elevenlabs_plugin.js            # Web ElevenLabs integration
-│   └── pubspec.yaml                         # Dependencies
-├── QUICKSTART.md                            # Quick start guide (5 min setup)
-├── FLUTTER_VOICE_INTEGRATION.md             # Full documentation
-├── RESEARCH_SUMMARY.md                      # Package comparison & research
-└── README.md                                # This file
+│   │   ├── bloc/              # BLoC state management
+│   │   │   ├── connection/    # WebSocket connection
+│   │   │   ├── message/       # Chat messages
+│   │   │   └── voice/         # Voice state machine
+│   │   ├── models/            # Data models
+│   │   ├── services/          # Business logic
+│   │   │   ├── network_service.dart
+│   │   │   └── voice_service.dart
+│   │   ├── widgets/           # Reusable UI components
+│   │   │   ├── voice_orb.dart
+│   │   │   ├── glass_card.dart
+│   │   │   └── chat_bubble.dart
+│   │   └── main.dart          # App entry point
+│   ├── test/                  # Tests (50+ tests)
+│   │   ├── bloc/              # BLoC tests
+│   │   └── widgets/           # Widget tests
+│   ├── android/               # Android platform code
+│   ├── ios/                   # iOS platform code
+│   ├── web/                   # Web platform code
+│   └── pubspec.yaml           # Dependencies
+├── server.js                  # WebSocket server (Node.js)
+├── voice-client.js            # Web voice client
+├── index.html                 # Web UI
+├── docs/                      # Documentation
+│   ├── FLUTTER_ARCHITECTURE.md
+│   ├── DEPLOYMENT-SUMMARY.md
+│   └── DESIGN-SPEC-2026.md
+├── .github/
+│   └── workflows/
+│       ├── ci.yml             # Web CI/CD
+│       └── flutter-ci.yml     # Flutter CI/CD
+├── README.md                  # This file
+└── LICENSE                    # MIT License
 ```
 
-## 🚀 Quick Start (5 minutes)
-
-### 1. Install Dependencies
-
-```bash
-flutter pub add speech_to_text flutter_tts record permission_handler
-```
-
-### 2. Copy VoiceService
-
-Copy `flutter/lib/services/voice_service.dart` to your project.
-
-### 3. Setup Permissions
-
-**Android** (`android/app/src/main/AndroidManifest.xml`):
-```xml
-<uses-permission android:name="android.permission.RECORD_AUDIO"/>
-<uses-permission android:name="android.permission.INTERNET"/>
-```
-
-**iOS** (`ios/Runner/Info.plist`):
-```xml
-<key>NSMicrophoneUsageDescription</key>
-<string>App needs microphone for voice commands</string>
-```
-
-### 4. Use in Your App
-
-```dart
-import 'package:your_app/services/voice_service.dart';
-
-final voiceService = VoiceService();
-
-// Initialize
-await voiceService.initialize(
-  locale: 'da-DK',
-  onTranscription: (text) => print('Heard: $text'),
-);
-
-// Listen
-await voiceService.startListening();
-
-// Speak
-await voiceService.speak('Hello!');
-```
-
-See [QUICKSTART.md](./QUICKSTART.md) for detailed setup.
-
-## 📖 Documentation
-
-- **[QUICKSTART.md](./QUICKSTART.md)** - 5-minute setup guide
-- **[FLUTTER_VOICE_INTEGRATION.md](./FLUTTER_VOICE_INTEGRATION.md)** - Complete guide (850+ lines)
-- **[RESEARCH_SUMMARY.md](./RESEARCH_SUMMARY.md)** - Package comparison & benchmarks
-
-## 🏗️ Architecture
-
-### VoiceService API
-
-```dart
-class VoiceService {
-  // Initialization
-  Future<bool> initialize({...});
-  
-  // Speech-to-Text
-  Future<bool> startListening();
-  Future<void> stopListening();
-  Future<void> cancelListening();
-  
-  // Text-to-Speech (hybrid: local + ElevenLabs)
-  Future<bool> speak(String text, {...});
-  Future<void> stopSpeaking();
-  
-  // Audio Recording
-  Future<bool> startRecording();
-  Future<String?> stopRecording();
-  
-  // Utilities
-  Future<List<LocaleName>> getAvailableLocales();
-  Future<List<dynamic>> getAvailableVoices();
-  Future<void> dispose();
-  
-  // Wake Word (placeholder)
-  Future<bool> detectWakeWord(); // Not implemented
-}
-```
-
-### ElevenLabs Integration
-
-Platform channels for high-quality neural TTS:
-
-- **Android**: Kotlin + OkHttp + MediaPlayer
-- **iOS**: Swift + URLSession + AVAudioPlayer
-- **Web**: JavaScript + Fetch API + Audio element
-
-Automatic fallback to local TTS on error.
-
-## 🎯 Package Choices
-
-| Feature | Package | Why? |
-|---------|---------|------|
-| **STT** | speech_to_text | Multi-platform, offline, native |
-| **TTS** | flutter_tts | Offline, fast, free |
-| **Recording** | record | Lightweight, no deps, fast |
-| **Premium TTS** | ElevenLabs API | Neural voices, voice cloning |
-
-See [RESEARCH_SUMMARY.md](./RESEARCH_SUMMARY.md) for detailed comparison.
-
-## ⚡ Performance
-
-| Metric | Target | Achieved |
-|--------|--------|----------|
-| **Recording Start** | <500ms | 65-180ms ✅ |
-| **TTS Local** | <200ms | 95-230ms ✅ |
-| **STT Start** | <500ms | 220-410ms ✅ |
-| **Memory (Idle)** | <5 MB | 2.3 MB ✅ |
-| **Memory (Peak)** | <30 MB | 14.2 MB ✅ |
-
-## 🛠️ Requirements
-
-- **Flutter**: >=3.0.0
-- **Android**: SDK 23+ (Android 6.0+)
-- **iOS**: 12.0+
-- **Web**: Chrome, Edge, Safari (limited Firefox/Brave)
-
-## 🔐 Permissions
-
-**Android**:
-- `RECORD_AUDIO` - Required
-- `INTERNET` - For cloud TTS (optional)
-- `BLUETOOTH` - For BT headsets (optional)
-
-**iOS**:
-- `NSMicrophoneUsageDescription` - Required
-- `NSSpeechRecognitionUsageDescription` - Required
-
-**Web**: Browser prompts automatically
-
-## 💰 Costs
-
-**Packages**: Free (MIT/BSD licenses)
-
-**Optional Services**:
-- ElevenLabs: $0-$99/month (10k free chars)
-- Picovoice: $0.25/1000 activations (1000 free)
-
-**Estimated**: $0-$47/month for 100 DAU
+---
 
 ## 🧪 Testing
 
 ```bash
-# Unit tests
+# Run all tests
 flutter test
 
-# Integration tests
-flutter test integration_test/
+# Run with coverage
+flutter test --coverage
 
-# Run on device
-flutter run -d <device>
+# Run specific test file
+flutter test test/bloc/connection_bloc_test.dart
 ```
 
-## 🐛 Troubleshooting
-
-### Android: "Speech recognition unavailable"
-→ Enable Google app in Settings
-
-### iOS: Crashes on permission request in simulator
-→ Test on physical device (known Flutter bug)
-
-### Web: Speech not working
-→ Use Chrome or Edge (Firefox/Brave have limited support)
-
-### All: "Permission denied"
-→ Check AndroidManifest.xml / Info.plist
-
-See [FLUTTER_VOICE_INTEGRATION.md](./FLUTTER_VOICE_INTEGRATION.md#troubleshooting) for more.
-
-## 🚧 Known Limitations
-
-- **60s timeout**: Platform limitation on Android/iOS
-- **No wake word**: Requires additional package (picovoice_flutter)
-- **File transcription**: iOS only, requires native code
-- **Web support**: Browser-dependent (Chrome/Edge recommended)
-
-## 🗺️ Roadmap
-
-### Phase 1 (✅ Complete)
-- [x] Core VoiceService implementation
-- [x] Multi-platform support (Android, iOS, Web)
-- [x] ElevenLabs integration
-- [x] Documentation
-
-### Phase 2 (Planned)
-- [ ] Wake word detection (picovoice_flutter)
-- [ ] Voice activity detection (VAD)
-- [ ] File transcription (iOS)
-- [ ] Background recording
-
-### Phase 3 (Future)
-- [ ] Multi-user voice recognition
-- [ ] Speaker diarization
-- [ ] Real-time translation
-- [ ] Voice biometrics
-
-## 📚 Resources
-
-- **Packages**: [speech_to_text](https://pub.dev/packages/speech_to_text) | [flutter_tts](https://pub.dev/packages/flutter_tts) | [record](https://pub.dev/packages/record)
-- **ElevenLabs**: [API Docs](https://elevenlabs.io/docs)
-- **Community**: [Flutter Discord](https://discord.gg/flutter) | [r/FlutterDev](https://reddit.com/r/FlutterDev)
-
-## 📄 License
-
-MIT License - See individual package licenses for dependencies.
-
-## 🤝 Contributing
-
-Issues and PRs welcome! See [CONTRIBUTING.md](./CONTRIBUTING.md) (coming soon).
-
-## 👨‍💻 Author
-
-**Friday AI Team**
-- GitHub: [@JonasAbde](https://github.com/JonasAbde)
-- Project: [friday-voice-app](https://github.com/jonasabde/friday-voice-app)
+**Test Coverage:**
+- BLoC tests: 21 tests (100% coverage)
+- Widget tests: 29 tests (100% coverage)
+- Overall: ~45% coverage (target 80%)
 
 ---
 
-**Status**: ✅ Production Ready
-**Last Updated**: 2026-02-06
-**Version**: 1.0.0
+## 🏗️ Architecture
+
+Friday Voice App follows **Clean Architecture** principles:
+
+```
+┌─────────────────────────────────────────┐
+│           Presentation Layer            │
+│  (Widgets, BLoC, UI Components)         │
+└─────────────────────────────────────────┘
+                  ↓
+┌─────────────────────────────────────────┐
+│           Business Logic Layer          │
+│  (Services, Use Cases, BLoC)            │
+└─────────────────────────────────────────┘
+                  ↓
+┌─────────────────────────────────────────┐
+│              Data Layer                 │
+│  (Models, WebSocket, API Clients)       │
+└─────────────────────────────────────────┘
+```
+
+**State Management:** BLoC (Business Logic Component)
+- `ConnectionBloc` - WebSocket connection state
+- `MessageBloc` - Chat message management
+- `VoiceBloc` - Voice interaction state machine
+
+See [FLUTTER_ARCHITECTURE.md](docs/FLUTTER_ARCHITECTURE.md) for details.
+
+---
+
+## 🎨 UI/UX Design
+
+**Design Philosophy:** 2026 Modern Design Trends
+- Liquid glass morphism (BackdropFilter blur)
+- Neon gradients (cyan/purple/pink)
+- Microinteractions (smooth animations)
+- Voice-first UX (pulsing orb mic button)
+- Mobile-optimized (responsive layouts)
+
+**Color Palette:**
+- Primary: Cyan (#00d4ff)
+- Accent: Purple (#b829ff)
+- Background: Dark gradient (#0a0e27 → #1a1f3a)
+
+See [DESIGN-SPEC-2026.md](docs/DESIGN-SPEC-2026.md) for full specs.
+
+---
+
+## 🚀 Deployment
+
+### Web (Cloudflare Pages)
+
+```bash
+# Build web app
+flutter build web --release
+
+# Deploy (manual)
+# Upload build/web/ to Cloudflare Pages
+```
+
+### Android
+
+```bash
+# Build debug APK
+flutter build apk --debug
+
+# Build release APK (requires keystore)
+flutter build apk --release
+
+# Install on device
+adb install build/app/outputs/flutter-apk/app-debug.apk
+```
+
+### iOS
+
+```bash
+# Build iOS app
+flutter build ios --release
+
+# Requires Xcode for signing + App Store upload
+```
+
+See [DEPLOYMENT-SUMMARY.md](docs/DEPLOYMENT-SUMMARY.md) for complete guide.
+
+---
+
+## 📊 Tech Stack
+
+**Frontend:**
+- Flutter 3.24 (Dart 3.0+)
+- Material Design 3
+- BLoC (flutter_bloc ^8.1.6)
+- WebSocket (web_socket_channel ^3.0.1)
+
+**Voice:**
+- speech_to_text ^7.0.0 (STT)
+- flutter_tts ^4.0.2 (TTS)
+- record ^5.1.2 (audio recording)
+- ElevenLabs API (neural TTS)
+
+**Testing:**
+- bloc_test ^9.1.7
+- mocktail ^1.0.4
+- flutter_test (built-in)
+
+**Backend:**
+- Node.js 18+ (WebSocket server)
+- OpenClaw Gateway (AI orchestration)
+
+---
+
+## 🤝 Contributing
+
+Contributions welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) first.
+
+**Development Workflow:**
+1. Fork repository
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Write tests (required for all new features)
+4. Commit changes (`git commit -m 'Add amazing feature'`)
+5. Push to branch (`git push origin feature/amazing-feature`)
+6. Open Pull Request
+
+**Code Quality:**
+- All tests must pass (`flutter test`)
+- Code must be formatted (`dart format .`)
+- No analyzer warnings (`flutter analyze`)
+- Follow [Effective Dart](https://dart.dev/guides/language/effective-dart)
+
+---
+
+## 📝 Documentation
+
+- [Architecture Guide](docs/FLUTTER_ARCHITECTURE.md) - Clean Architecture + BLoC
+- [Deployment Guide](docs/DEPLOYMENT-SUMMARY.md) - Multi-platform deployment
+- [Design Specification](docs/DESIGN-SPEC-2026.md) - UI/UX design system
+- [API Documentation](API.md) - WebSocket API reference
+- [Features Roadmap](FEATURES.md) - Planned features
+- [Bug Reports](BUGS.md) - Known issues
+
+---
+
+## 📜 License
+
+MIT License - see [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- [Flutter](https://flutter.dev) - UI framework
+- [ElevenLabs](https://elevenlabs.io) - Neural TTS
+- [OpenClaw](https://openclaw.ai) - AI orchestration
+- [Material Design](https://m3.material.io) - Design system
+
+---
+
+## 📞 Contact
+
+**Jonas Abde (Bangzito)**
+- GitHub: [@JonasAbde](https://github.com/JonasAbde)
+- Discord: tekup-dk guild
+
+---
+
+## 📈 Project Stats
+
+![GitHub stars](https://img.shields.io/github/stars/JonasAbde/friday-voice-app?style=social)
+![GitHub forks](https://img.shields.io/github/forks/JonasAbde/friday-voice-app?style=social)
+![GitHub issues](https://img.shields.io/github/issues/JonasAbde/friday-voice-app)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/JonasAbde/friday-voice-app)
+![GitHub last commit](https://img.shields.io/github/last-commit/JonasAbde/friday-voice-app)
+![Lines of code](https://img.shields.io/tokei/lines/github/JonasAbde/friday-voice-app)
+
+---
+
+**Built with ❤️ by Friday AI**

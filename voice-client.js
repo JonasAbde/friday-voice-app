@@ -119,10 +119,15 @@ class FridayVoiceClient {
         this.micBtn = document.getElementById('mic-btn');
         this.stopBtn = document.getElementById('stop-btn');
         this.replayBtn = document.getElementById('replay-btn');
+        this.settingsBtn = document.getElementById('settings-btn');
         this.chatContainer = document.getElementById('chat');
         this.statusText = document.getElementById('status-text');
         this.statusDot = document.getElementById('status-dot');
         this.thinkingIndicator = document.getElementById('thinking-indicator');
+        
+        // Settings modal
+        this.settingsModal = document.getElementById('settings-modal');
+        this.closeSettings = document.getElementById('close-settings');
         
         // Mode toggles
         this.modeWake = document.getElementById('mode-wake');
@@ -138,6 +143,15 @@ class FridayVoiceClient {
         this.micBtn.addEventListener('click', () => this.toggleRecording());
         this.stopBtn.addEventListener('click', () => this.stopRecording());
         this.replayBtn.addEventListener('click', () => this.replayLastResponse());
+        this.settingsBtn.addEventListener('click', () => this.openSettings());
+        this.closeSettings.addEventListener('click', () => this.closeSettingsModal());
+        
+        // Close modal on outside click
+        this.settingsModal.addEventListener('click', (e) => {
+            if (e.target === this.settingsModal) {
+                this.closeSettingsModal();
+            }
+        });
         
         this.modeWake.addEventListener('click', () => this.setMode('wake'));
         this.modePush.addEventListener('click', () => this.setMode('push'));
@@ -531,14 +545,26 @@ class FridayVoiceClient {
     setMode(mode) {
         this.currentMode = mode;
         
-        // Update UI
+        // Update UI with proper styling
         if (mode === 'wake') {
-            this.modeWake.classList.add('active');
-            this.modePush.classList.remove('active');
+            // Wake Word active
+            this.modeWake.classList.add('border-neon-cyan', 'bg-neon-cyan/10');
+            this.modeWake.classList.remove('border-transparent', 'opacity-60');
+            
+            // Push to Talk inactive
+            this.modePush.classList.remove('border-neon-cyan', 'bg-neon-cyan/10');
+            this.modePush.classList.add('border-transparent', 'opacity-60');
+            
             this.enableWakeWord();
         } else {
-            this.modePush.classList.add('active');
-            this.modeWake.classList.remove('active');
+            // Push to Talk active
+            this.modePush.classList.add('border-neon-cyan', 'bg-neon-cyan/10');
+            this.modePush.classList.remove('border-transparent', 'opacity-60');
+            
+            // Wake Word inactive
+            this.modeWake.classList.remove('border-neon-cyan', 'bg-neon-cyan/10');
+            this.modeWake.classList.add('border-transparent', 'opacity-60');
+            
             this.disableWakeWord();
             this.updateStatus('Push-to-talk mode (hold Space)', true);
         }
@@ -660,3 +686,19 @@ document.addEventListener('DOMContentLoaded', () => {
 FridayVoiceClient.prototype.addMessage = function(role, text) {
     this.addMessageBubble(role, text);
 };
+
+    /**
+     * Open settings modal
+     */
+    openSettings() {
+        this.settingsModal.classList.remove('hidden');
+        this.settingsModal.classList.add('flex');
+    }
+    
+    /**
+     * Close settings modal
+     */
+    closeSettingsModal() {
+        this.settingsModal.classList.add('hidden');
+        this.settingsModal.classList.remove('flex');
+    }

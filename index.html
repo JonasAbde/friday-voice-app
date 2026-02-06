@@ -279,7 +279,7 @@
             
             <!-- Chat Container -->
             <div class="flex-1 glass-card rounded-2xl md:rounded-3xl p-4 md:p-6 overflow-hidden flex flex-col">
-                <div class="flex-1 overflow-y-auto mb-4" id="chat" style="max-height: 250px;">
+                <div class="flex-1 overflow-y-auto mb-4 scroll-smooth" id="chat" style="max-height: 250px; min-height: 250px;">
                     <!-- Messages will appear here -->
                     <div class="text-center text-white/40 py-8 md:py-12">
                         <p class="text-base md:text-lg">Klar til at tale...</p>
@@ -345,7 +345,7 @@
                         <span>Replay</span>
                     </button>
                     
-                    <button class="glass-button rounded-lg md:rounded-xl py-2 md:py-3 px-3 md:px-6 flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 hover:scale-105 transition-transform text-xs md:text-base">
+                    <button id="settings-btn" class="glass-button rounded-lg md:rounded-xl py-2 md:py-3 px-3 md:px-6 flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 hover:scale-105 transition-transform text-xs md:text-base">
                         <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -356,11 +356,11 @@
 
                 <!-- Mode Toggles -->
                 <div class="grid grid-cols-2 gap-2 md:gap-4 mb-4 md:mb-6">
-                    <button id="mode-wake" class="glass-button rounded-lg md:rounded-xl py-2 md:py-3 px-2 md:px-4 flex items-center justify-center gap-1 md:gap-2 border-neon-cyan/50 text-sm md:text-base">
+                    <button id="mode-wake" class="glass-button rounded-lg md:rounded-xl py-2 md:py-3 px-2 md:px-4 flex items-center justify-center gap-1 md:gap-2 border-2 border-neon-cyan bg-neon-cyan/10 text-sm md:text-base">
                         <span class="text-lg md:text-2xl">👂</span>
                         <span>Wake Word</span>
                     </button>
-                    <button id="mode-push" class="glass-button rounded-lg md:rounded-xl py-2 md:py-3 px-2 md:px-4 flex items-center justify-center gap-1 md:gap-2 text-sm md:text-base">
+                    <button id="mode-push" class="glass-button rounded-lg md:rounded-xl py-2 md:py-3 px-2 md:px-4 flex items-center justify-center gap-1 md:gap-2 border-2 border-transparent text-sm md:text-base opacity-60">
                         <span class="text-lg md:text-2xl">🎙️</span>
                         <span>Push to Talk</span>
                     </button>
@@ -370,28 +370,94 @@
                 <div class="mb-3 md:mb-4">
                     <div class="flex items-center justify-between mb-1 md:mb-2">
                         <label class="text-xs md:text-sm text-white/80">🔊 Volume</label>
-                        <span class="text-xs md:text-sm text-neon-cyan" id="volume-value">70%</span>
+                        <span class="text-xs md:text-sm text-neon-cyan font-medium" id="volume-value">70%</span>
                     </div>
-                    <input type="range" id="volume-slider" min="0" max="100" value="70" 
-                           class="w-full h-2 bg-white/10 rounded-full appearance-none cursor-pointer accent-neon-cyan">
+                    <div class="relative">
+                        <input type="range" id="volume-slider" min="0" max="100" value="70" 
+                               class="w-full h-2 bg-white/10 rounded-full appearance-none cursor-pointer accent-neon-cyan">
+                        <div class="flex justify-between text-[10px] text-white/40 mt-1">
+                            <span>0%</span>
+                            <span>100%</span>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Sensitivity Slider -->
                 <div>
                     <div class="flex items-center justify-between mb-1 md:mb-2">
                         <label class="text-xs md:text-sm text-white/80">🎚️ Mic Sensitivity</label>
-                        <span class="text-xs md:text-sm text-neon-purple" id="sensitivity-value">85%</span>
+                        <span class="text-xs md:text-sm text-neon-purple font-medium" id="sensitivity-value">85%</span>
                     </div>
-                    <input type="range" id="sensitivity-slider" min="0" max="100" value="85" 
-                           class="w-full h-2 bg-white/10 rounded-full appearance-none cursor-pointer accent-neon-purple">
+                    <div class="relative">
+                        <input type="range" id="sensitivity-slider" min="0" max="100" value="85" 
+                               class="w-full h-2 bg-white/10 rounded-full appearance-none cursor-pointer accent-neon-purple">
+                        <div class="flex justify-between text-[10px] text-white/40 mt-1">
+                            <span>0%</span>
+                            <span>100%</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
 
-        <!-- Footer -->
-        <footer class="mt-4 md:mt-8 text-center text-white/40 text-xs md:text-sm hidden md:block">
-            <p>VPS: <span class="text-white/60">srv1330705</span> | Session: <span class="text-neon-cyan">friday-voice</span></p>
-        </footer>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="glass-card rounded-3xl p-6 md:p-8 max-w-md w-full mx-4 animate-slideIn">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold bg-gradient-to-r from-neon-cyan to-neon-purple bg-clip-text text-transparent">
+                    Indstillinger
+                </h2>
+                <button id="close-settings" class="text-white/60 hover:text-white transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="space-y-4">
+                <!-- Language -->
+                <div>
+                    <label class="block text-sm text-white/80 mb-2">🌍 Sprog</label>
+                    <select class="w-full glass-button rounded-xl px-4 py-3 text-white bg-white/5 border border-white/10">
+                        <option value="da">Dansk</option>
+                        <option value="en">English</option>
+                    </select>
+                </div>
+                
+                <!-- Voice -->
+                <div>
+                    <label class="block text-sm text-white/80 mb-2">🎤 Stemme</label>
+                    <select class="w-full glass-button rounded-xl px-4 py-3 text-white bg-white/5 border border-white/10">
+                        <option value="female-da">Dansk (Kvinde)</option>
+                        <option value="male-da">Dansk (Mand)</option>
+                    </select>
+                </div>
+                
+                <!-- Wake Word -->
+                <div>
+                    <label class="block text-sm text-white/80 mb-2">👂 Wake Word</label>
+                    <input type="text" value="Friday" readonly 
+                           class="w-full glass-button rounded-xl px-4 py-3 text-white/60 bg-white/5 border border-white/10 cursor-not-allowed">
+                    <p class="text-xs text-white/40 mt-1">Kræver Porcupine setup</p>
+                </div>
+                
+                <!-- Debug Mode -->
+                <div class="flex items-center justify-between">
+                    <span class="text-sm text-white/80">🐛 Debug Mode</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" class="sr-only peer" id="debug-toggle">
+                        <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-neon-cyan"></div>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="mt-6 pt-6 border-t border-white/10 text-center text-xs text-white/40">
+                <p>VPS: srv1330705 | Session: friday-voice</p>
+                <p class="mt-1">OpenClaw v2026.2.3</p>
+            </div>
+        </div>
     </div>
 
     <!-- Load voice client -->

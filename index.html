@@ -171,6 +171,8 @@
             background: linear-gradient(135deg, var(--accent-from), var(--accent-to));
             border: none;
             padding: var(--space-3) var(--space-5);
+            min-height: 44px; /* Accessibility - touch target */
+            min-width: 44px;
             border-radius: 16px;
             font-weight: 600;
             color: white;
@@ -179,6 +181,12 @@
             box-shadow: 0 10px 30px rgba(102,126,234,0.3);
             position: relative;
             overflow: hidden;
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
         }
         
         .btn-primary:hover {
@@ -214,6 +222,18 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255,255,255,0.1);
             padding: var(--space-3) var(--space-4);
+            min-height: 44px;
+            min-width: 44px;
+            border-radius: 12px;
+            color: rgba(255,255,255,0.9);
+            cursor: pointer;
+            transition: all 0.3s var(--ease-smooth);
+        }
+        
+        .btn-glass:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
             border-radius: 12px;
             color: rgba(255,255,255,0.9);
             cursor: pointer;
@@ -345,9 +365,56 @@
                 transform: translateY(0) scale(1);
             }
         }
+        
+        /* === TOAST NOTIFICATIONS === */
+        .toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(0,0,0,0.9);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: 500;
+            opacity: 0;
+            transition: all 0.3s var(--ease-smooth);
+            z-index: 1000;
+            min-width: 200px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+        
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        
+        .toast-success {
+            background: linear-gradient(135deg, rgba(16,185,129,0.9), rgba(5,150,105,0.9));
+        }
+        
+        .toast-error {
+            background: linear-gradient(135deg, rgba(239,68,68,0.9), rgba(220,38,38,0.9));
+        }
+        
+        .toast-info {
+            background: linear-gradient(135deg, rgba(102,126,234,0.9), rgba(118,75,162,0.9));
+        }
+        
+        /* === REDUCED MOTION === */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
     </style>
 </head>
-<body class="flex flex-col items-center justify-center min-h-screen p-4 md:p-8">
+<body class="flex flex-col items-center justify-center min-h-screen p-4 md:p-8" style="padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);">
 
     <!-- Status Badge (Top) -->
     <div class="mb-8">

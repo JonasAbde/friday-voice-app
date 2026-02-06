@@ -10,6 +10,9 @@ class FridayVoiceClient {
         this.recognition = null;
         this.wakeWordEngine = null; // Wake word detection
         this.wakeWordEnabled = false; // Toggle for always-listening mode
+        this.currentMode = 'wake'; // 'wake' or 'push'
+        this.lastFridayResponse = null; // For replay functionality
+        this.audioVolume = 0.7; // Default volume
         
         this.init();
     }
@@ -78,7 +81,9 @@ class FridayVoiceClient {
         }
         
         this.wakeWordEnabled = true;
+        this.micBtn.classList.add('wake-active');
         this.updateStatus('Wake word active - say "go" to activate 👂', true);
+        this.updateStatusDot('listening');
         
         // Start listening for wake word
         await this.wakeWordEngine.startListening((word, confidence) => {
@@ -98,17 +103,74 @@ class FridayVoiceClient {
         if (this.wakeWordEngine && this.wakeWordEnabled) {
             this.wakeWordEngine.stopListening();
             this.wakeWordEnabled = false;
+            this.micBtn.classList.remove('wake-active');
+            this.updateStatus('Wake word disabled', true);
+            this.updateStatusDot('listening');
+        }
+    }
+            this.wakeWordEngine.stopListening();
+            this.wakeWordEnabled = false;
             this.updateStatus('Wake word disabled', true);
         }
     }
     
     setupUI() {
+        // Main controls
         this.micBtn = document.getElementById('mic-btn');
+        this.stopBtn = document.getElementById('stop-btn');
+        this.replayBtn = document.getElementById('replay-btn');
         this.chatContainer = document.getElementById('chat');
         this.statusText = document.getElementById('status-text');
+        this.statusDot = document.getElementById('status-dot');
         this.thinkingIndicator = document.getElementById('thinking-indicator');
         
+        // Mode toggles
+        this.modeWake = document.getElementById('mode-wake');
+        this.modePush = document.getElementById('mode-push');
+        
+        // Sliders
+        this.volumeSlider = document.getElementById('volume-slider');
+        this.volumeValue = document.getElementById('volume-value');
+        this.sensitivitySlider = document.getElementById('sensitivity-slider');
+        this.sensitivityValue = document.getElementById('sensitivity-value');
+        
+        // Event listeners
         this.micBtn.addEventListener('click', () => this.toggleRecording());
+        this.stopBtn.addEventListener('click', () => this.stopRecording());
+        this.replayBtn.addEventListener('click', () => this.replayLastResponse());
+        
+        this.modeWake.addEventListener('click', () => this.setMode('wake'));
+        this.modePush.addEventListener('click', () => this.setMode('push'));
+        
+        this.volumeSlider.addEventListener('input', (e) => {
+            this.volumeValue.textContent = e.target.value + '%';
+            this.setVolume(e.target.value / 100);
+        });
+        
+        this.sensitivitySlider.addEventListener('input', (e) => {
+            this.sensitivityValue.textContent = e.target.value + '%';
+            if (this.wakeWordEngine) {
+                this.wakeWordEngine.wakeProbabilityThreshold = e.target.value / 100;
+            }
+        });
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && !e.repeat) {
+                e.preventDefault();
+                if (this.currentMode === 'push') {
+                    this.startRecording();
+                }
+            } else if (e.code === 'Escape') {
+                this.stopRecording();
+            }
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            if (e.code === 'Space' && this.currentMode === 'push') {
+                this.stopRecording();
+            }
+        });
     }
     
     connectWebSocket() {
@@ -195,8 +257,10 @@ class FridayVoiceClient {
         }
         
         this.isRecording = true;
-        this.micBtn.classList.add('active');
+        this.micBtn.classList.add('recording');
+        this.micBtn.classList.remove('wake-active');
         this.updateStatus('Listening... 🎤', true);
+        this.updateStatusDot('listening');
         
         try {
             this.recognition.start();
@@ -208,8 +272,16 @@ class FridayVoiceClient {
     
     stopRecording() {
         this.isRecording = false;
-        this.micBtn.classList.remove('active');
-        this.updateStatus('Connected to Friday 🟢', true);
+        this.micBtn.classList.remove('recording');
+        
+        if (this.wakeWordEnabled) {
+            this.micBtn.classList.add('wake-active');
+            this.updateStatus('Wake word active - say "go" to activate 👂', true);
+            this.updateStatusDot('listening');
+        } else {
+            this.updateStatus('Connected to Friday 🟢', true);
+            this.updateStatusDot('listening');
+        }
         
         if (this.recognition) {
             this.recognition.stop();
@@ -220,8 +292,12 @@ class FridayVoiceClient {
         // Add user message to chat
         this.addMessage('user', transcript);
         
-        // Show thinking indicator
-        this.thinkingIndicator.style.display = 'block';
+        // Show processing state
+        this.thinkingIndicator.classList.add('active');
+        this.micBtn.classList.add('processing');
+        this.micBtn.classList.remove('recording', 'wake-active');
+        this.updateStatus('🧠 Friday is thinking...', true);
+        this.updateStatusDot('processing');
         
         // Send to Friday server
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
@@ -232,12 +308,19 @@ class FridayVoiceClient {
             }));
         } else {
             this.showError('Not connected to server');
-            this.thinkingIndicator.style.display = 'none';
+            this.thinkingIndicator.classList.remove('active');
+            this.micBtn.classList.remove('processing');
         }
     }
     
     handleServerMessage(data) {
-        this.thinkingIndicator.style.display = 'none';
+        this.thinkingIndicator.classList.remove('active');
+        this.micBtn.classList.remove('processing');
+        
+        // Restore wake word state if enabled
+        if (this.wakeWordEnabled) {
+            this.micBtn.classList.add('wake-active');
+        }
         
         switch (data.type) {
             case 'friday_response':
@@ -329,9 +412,29 @@ class FridayVoiceClient {
     
     playAudio(audioUrl) {
         const audio = new Audio(audioUrl);
+        audio.volume = this.audioVolume; // Respect volume setting
         audio.play().catch(e => {
             console.error('Failed to play audio:', e);
         });
+        
+        // Save for replay
+        this.lastFridayResponse = audioUrl;
+        
+        // Update status dot
+        this.updateStatusDot('speaking');
+        
+        // Reset status when done
+        audio.addEventListener('ended', () => {
+            this.updateStatusDot('listening');
+            if (this.wakeWordEnabled) {
+                this.updateStatus('Wake word active - say "go" to activate 👂', true);
+            }
+        });
+    }
+    
+    playTTS(audioUrl) {
+        // Alias for playAudio (used in replay)
+        this.playAudio(audioUrl);
     }
     
     updateStatus(text, connected) {
@@ -354,6 +457,55 @@ class FridayVoiceClient {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    }
+    
+    /**
+     * Set interaction mode (wake word vs push-to-talk)
+     */
+    setMode(mode) {
+        this.currentMode = mode;
+        
+        // Update UI
+        if (mode === 'wake') {
+            this.modeWake.classList.add('active');
+            this.modePush.classList.remove('active');
+            this.enableWakeWord();
+        } else {
+            this.modePush.classList.add('active');
+            this.modeWake.classList.remove('active');
+            this.disableWakeWord();
+            this.updateStatus('Push-to-talk mode (hold Space)', true);
+        }
+    }
+    
+    /**
+     * Set TTS volume
+     */
+    setVolume(volume) {
+        this.audioVolume = volume;
+        console.log(`🔊 Volume set to ${(volume * 100).toFixed(0)}%`);
+    }
+    
+    /**
+     * Replay last Friday response
+     */
+    replayLastResponse() {
+        if (!this.lastFridayResponse) {
+            this.showError('No response to replay');
+            return;
+        }
+        
+        console.log('🔄 Replaying last response...');
+        this.playTTS(this.lastFridayResponse);
+    }
+    
+    /**
+     * Update status dot color based on state
+     */
+    updateStatusDot(state) {
+        if (!this.statusDot) return;
+        
+        this.statusDot.className = 'status-dot ' + state;
     }
 }
 

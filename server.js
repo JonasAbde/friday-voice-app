@@ -1,0 +1,200 @@
+/**
+ * FRIDAY VOICE SERVER
+ * 
+ * Self-built WebSocket server for real-time voice communication with Friday AI.
+ * Handles client connections, message routing, and AI integration.
+ * 
+ * Architecture:
+ * - Express serves static HTML/JS files
+ * - WebSocket handles real-time bidirectional communication
+ * - OpenClaw CLI integration for AI responses
+ * - Future: ElevenLabs TTS for voice output
+ * 
+ * @author Friday (AI Agent)
+ * @version 0.1.0-alpha
+ * @created 2026-02-06
+ */
+
+const WebSocket = require('ws');
+const express = require('express');
+const path = require('path');
+const { exec } = require('child_process');
+const fs = require('fs');
+
+/**
+ * Main server class handling HTTP and WebSocket connections
+ */
+class FridayVoiceServer {
+    /**
+     * Initialize server with default configuration
+     */
+    constructor() {
+        // Server configuration
+        this.port = 8765;  // Local port (exposed via Cloudflare Tunnel)
+        this.app = express();  // HTTP server for static files
+        this.wss = null;  // WebSocket server instance
+        this.clients = new Set();  // Track active WebSocket connections
+        
+        this.init();
+    }
+    
+    /**
+     * Initialize all server components
+     * Order: Express → WebSocket → Start
+     */
+    init() {
+        this.setupExpress();
+        this.setupWebSocket();
+        this.start();
+    }
+    
+    /**
+     * Configure Express HTTP server
+     * - Serves static files (HTML, CSS, JS)
+     * - Provides health check endpoint for monitoring
+     */
+    setupExpress() {
+        // Serve static files from current directory
+        // This includes index.html, voice-client.js, etc.
+        this.app.use(express.static(path.join(__dirname)));
+        
+        // Health check endpoint for monitoring/debugging
+        // Returns server status, client count, uptime
+        this.app.get('/health', (req, res) => {
+            res.json({
+                status: 'online',
+                server: 'Friday Voice Server',
+                clients: this.clients.size,  // Number of active WebSocket connections
+                uptime: process.uptime()  // Server uptime in seconds
+            });
+        });
+        
+        // Start HTTP server on localhost only (accessed via Cloudflare Tunnel)
+        // Binding to 127.0.0.1 prevents direct external access
+        this.server = this.app.listen(this.port, '127.0.0.1', () => {
+            console.log(`🖐️  Friday Voice Server running on http://127.0.0.1:${this.port}`);
+        });
+    }
+    
+    setupWebSocket() {
+        this.wss = new WebSocket.Server({ server: this.server, path: '/ws' });
+        
+        this.wss.on('connection', (ws, req) => {
+            console.log('✅ New client connected:', req.socket.remoteAddress);
+            this.clients.add(ws);
+            
+            ws.on('message', async (data) => {
+                try {
+                    const message = JSON.parse(data);
+                    await this.handleClientMessage(ws, message);
+                } catch (error) {
+                    console.error('Error handling message:', error);
+                    this.sendError(ws, 'Failed to process message');
+                }
+            });
+            
+            ws.on('close', () => {
+                console.log('❌ Client disconnected');
+                this.clients.delete(ws);
+            });
+            
+            ws.on('error', (error) => {
+                console.error('WebSocket error:', error);
+                this.clients.delete(ws);
+            });
+            
+            // Send welcome message
+            this.send(ws, {
+                type: 'status',
+                message: 'Connected to Friday Voice Server 🟢'
+            });
+        });
+    }
+    
+    async handleClientMessage(ws, message) {
+        console.log('📨 Received:', message.type);
+        
+        switch (message.type) {
+            case 'voice_message':
+                await this.processVoiceMessage(ws, message.transcript);
+                break;
+                
+            default:
+                console.warn('Unknown message type:', message.type);
+        }
+    }
+    
+    async processVoiceMessage(ws, transcript) {
+        console.log('🎙️  User said:', transcript);
+        
+        try {
+            // Call Friday AI (via OpenClaw session)
+            const fridayResponse = await this.askFriday(transcript);
+            
+            // Generate TTS audio
+            const audioUrl = await this.generateTTS(fridayResponse);
+            
+            // Send response back to client
+            this.send(ws, {
+                type: 'friday_response',
+                text: fridayResponse,
+                audioUrl: audioUrl
+            });
+            
+        } catch (error) {
+            console.error('Error processing voice message:', error);
+            this.sendError(ws, 'Failed to get response from Friday');
+        }
+    }
+    
+    async askFriday(message) {
+        // Call Friday via OpenClaw CLI
+        return new Promise((resolve, reject) => {
+            const command = `openclaw chat --agent main --message "${message.replace(/"/g, '\\"')}" --no-stream`;
+            
+            exec(command, { maxBuffer: 1024 * 1024 }, (error, stdout, stderr) => {
+                if (error) {
+                    console.error('Error calling Friday:', error);
+                    reject(error);
+                    return;
+                }
+                
+                // Extract Friday's response from output
+                const lines = stdout.split('\n');
+                const response = lines.filter(l => l.trim() && !l.startsWith('[')).join('\n');
+                
+                resolve(response || 'Jeg hørte dig, men har intet at sige lige nu.');
+            });
+        });
+    }
+    
+    async generateTTS(text) {
+        // For now, return null (we'll integrate ElevenLabs later)
+        // This is where Friday will call TTS API
+        console.log('🔊 TTS generation (placeholder):', text.substring(0, 50));
+        return null; // TODO: Implement TTS
+    }
+    
+    send(ws, data) {
+        if (ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify(data));
+        }
+    }
+    
+    sendError(ws, message) {
+        this.send(ws, {
+            type: 'error',
+            message: message
+        });
+    }
+    
+    start() {
+        console.log('\n🚀 Friday Voice Server started!');
+        console.log('📍 Local: http://127.0.0.1:' + this.port);
+        console.log('🌐 Public: Expose via Cloudflare Tunnel');
+        console.log('\n🖐️  Friday is ready to talk!\n');
+    }
+}
+
+// Start the server
+new FridayVoiceServer();

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Friday Voice - Autonomous AI Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 5px;
+        }
+        
+        .header .emoji {
+            font-size: 3em;
+        }
+        
+        .header .tagline {
+            color: #00d4ff;
+            font-size: 1.1em;
+            margin-top: 10px;
+        }
+        
+        .status {
+            padding: 10px 20px;
+            background: rgba(0, 212, 255, 0.1);
+            border-bottom: 1px solid rgba(0, 212, 255, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #00ff00;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .message {
+            max-width: 70%;
+            padding: 15px 20px;
+            border-radius: 15px;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .message.user {
+            background: rgba(0, 212, 255, 0.2);
+            align-self: flex-end;
+            border-bottom-right-radius: 5px;
+        }
+        
+        .message.friday {
+            background: rgba(138, 43, 226, 0.2);
+            align-self: flex-start;
+            border-bottom-left-radius: 5px;
+        }
+        
+        .message .timestamp {
+            font-size: 0.8em;
+            opacity: 0.6;
+            margin-top: 5px;
+        }
+        
+        .voice-control {
+            padding: 30px;
+            background: rgba(0, 0, 0, 0.3);
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .mic-button {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .mic-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .mic-button.active {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            animation: recording 1.5s infinite;
+        }
+        
+        @keyframes recording {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+        
+        .visualizer {
+            flex: 1;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            padding: 0 20px;
+        }
+        
+        .visualizer-bar {
+            width: 4px;
+            background: #00d4ff;
+            border-radius: 2px;
+            transition: height 0.1s ease;
+        }
+        
+        .thinking {
+            text-align: center;
+            padding: 20px;
+            color: #00d4ff;
+            font-style: italic;
+        }
+        
+        .error {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid rgba(255, 0, 0, 0.5);
+            padding: 15px;
+            margin: 10px 20px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="emoji">🖐️</div>
+        <h1>Friday</h1>
+        <div class="tagline">Autonomous AI Assistant - Self-Built Platform</div>
+    </div>
+    
+    <div class="status">
+        <div class="status-indicator">
+            <div class="status-dot"></div>
+            <span id="status-text">Connecting to Friday...</span>
+        </div>
+        <div id="connection-info">VPS: srv1330705</div>
+    </div>
+    
+    <div class="chat-container" id="chat">
+        <div class="message friday">
+            <div>Hej Jonas! Jeg er klar til at tale. Tryk på mikrofonen og sig noget 🎙️</div>
+            <div class="timestamp">Just now</div>
+        </div>
+    </div>
+    
+    <div id="thinking-indicator" class="thinking" style="display: none;">
+        Friday tænker...
+    </div>
+    
+    <div class="voice-control">
+        <button class="mic-button" id="mic-btn">
+            🎤
+        </button>
+        <div class="visualizer" id="visualizer">
+            <div class="visualizer-bar" style="height: 20px;"></div>
+            <div class="visualizer-bar" style="height: 30px;"></div>
+            <div class="visualizer-bar" style="height: 15px;"></div>
+            <div class="visualizer-bar" style="height: 40px;"></div>
+            <div class="visualizer-bar" style="height: 25px;"></div>
+            <div class="visualizer-bar" style="height: 35px;"></div>
+            <div class="visualizer-bar" style="height: 20px;"></div>
+            <div class="visualizer-bar" style="height: 30px;"></div>
+        </div>
+    </div>
+    
+    <script src="voice-client.js"></script>
+</body>
+</html>

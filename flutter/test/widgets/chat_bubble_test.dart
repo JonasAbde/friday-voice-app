@@ -8,7 +8,7 @@ void main() {
     testWidgets('renders user message correctly', (WidgetTester tester) async {
       final userMessage = Message(
         id: '1',
-        content: 'Hello Friday',
+        text: 'Hello Friday',
         isUser: true,
         timestamp: DateTime(2026, 2, 6, 15, 0),
       );
@@ -28,7 +28,7 @@ void main() {
     testWidgets('renders assistant message correctly', (WidgetTester tester) async {
       final assistantMessage = Message(
         id: '2',
-        content: 'How can I help?',
+        text: 'How can I help?',
         isUser: false,
         timestamp: DateTime(2026, 2, 6, 15, 0),
       );
@@ -49,7 +49,7 @@ void main() {
       const testContent = 'This is a test message with special characters: !@#\$%^&*()';
       final message = Message(
         id: '3',
-        content: testContent,
+        text: testContent,
         isUser: true,
         timestamp: DateTime.now(),
       );
@@ -68,7 +68,7 @@ void main() {
     testWidgets('handles long messages', (WidgetTester tester) async {
       final longMessage = Message(
         id: '4',
-        content: 'This is a very long message that should wrap to multiple lines. ' * 10,
+        text: 'This is a very long message that should wrap to multiple lines. ' * 10,
         isUser: true,
         timestamp: DateTime.now(),
       );
@@ -89,7 +89,7 @@ void main() {
     testWidgets('handles empty message', (WidgetTester tester) async {
       final emptyMessage = Message(
         id: '5',
-        content: '',
+        text: '',
         isUser: true,
         timestamp: DateTime.now(),
       );
@@ -107,9 +107,9 @@ void main() {
 
     testWidgets('renders multiple bubbles correctly', (WidgetTester tester) async {
       final messages = [
-        Message(id: '1', content: 'Message 1', isUser: true, timestamp: DateTime.now()),
-        Message(id: '2', content: 'Message 2', isUser: false, timestamp: DateTime.now()),
-        Message(id: '3', content: 'Message 3', isUser: true, timestamp: DateTime.now()),
+        Message(id: '1', text: 'Message 1', isUser: true, timestamp: DateTime.now()),
+        Message(id: '2', text: 'Message 2', isUser: false, timestamp: DateTime.now()),
+        Message(id: '3', text: 'Message 3', isUser: true, timestamp: DateTime.now()),
       ];
 
       await tester.pumpWidget(
@@ -132,14 +132,14 @@ void main() {
     testWidgets('different alignment for user vs assistant', (WidgetTester tester) async {
       final userMessage = Message(
         id: '1',
-        content: 'User message',
+        text: 'User message',
         isUser: true,
         timestamp: DateTime.now(),
       );
       
       final assistantMessage = Message(
         id: '2',
-        content: 'Assistant message',
+        text: 'Assistant message',
         isUser: false,
         timestamp: DateTime.now(),
       );
@@ -165,7 +165,7 @@ void main() {
     testWidgets('handles special characters in message', (WidgetTester tester) async {
       final specialMessage = Message(
         id: '8',
-        content: 'Special: 😀 🎉 €£¥ \n\t <>&',
+        text: 'Special: 😀 🎉 €£¥ \n\t <>&',
         isUser: true,
         timestamp: DateTime.now(),
       );
@@ -186,7 +186,7 @@ void main() {
       final timestamp = DateTime(2026, 2, 6, 15, 30);
       final message = Message(
         id: '9',
-        content: 'Timestamped message',
+        text: 'Timestamped message',
         isUser: true,
         timestamp: timestamp,
       );

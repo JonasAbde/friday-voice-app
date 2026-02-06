@@ -4,7 +4,7 @@ import '../theme/app_theme.dart';
 
 /// Animated voice orb (CustomPaint)
 class VoiceOrb extends StatefulWidget {
-  final VoiceState state;
+  final VoiceStatus state;
   final double size;
   
   const VoiceOrb({
@@ -51,16 +51,18 @@ class _VoiceOrbState extends State<VoiceOrb>
     }
   }
   
-  Duration _getDurationForState(VoiceState state) {
+  Duration _getDurationForState(VoiceStatus state) {
     switch (state) {
-      case VoiceState.idle:
+      case VoiceStatus.idle:
         return const Duration(milliseconds: 4000); // Slow breathe
-      case VoiceState.listening:
+      case VoiceStatus.listening:
         return const Duration(milliseconds: 1500); // Fast pulse
-      case VoiceState.processing:
+      case VoiceStatus.processing:
         return const Duration(milliseconds: 2000); // Medium spin
-      case VoiceState.speaking:
+      case VoiceStatus.speaking:
         return const Duration(milliseconds: 1000); // Fast pulse
+      case VoiceStatus.error:
+        return const Duration(milliseconds: 500); // Very fast (error shake)
     }
   }
   
@@ -94,7 +96,7 @@ class _VoiceOrbState extends State<VoiceOrb>
 /// Custom painter for voice orb
 class VoiceOrbPainter extends CustomPainter {
   final double animationValue;
-  final VoiceState state;
+  final VoiceStatus state;
   
   VoiceOrbPainter({
     required this.animationValue,
@@ -126,56 +128,66 @@ class VoiceOrbPainter extends CustomPainter {
     canvas.drawCircle(center, radius, paint);
     
     // Draw inner rings (for listening/processing states)
-    if (state == VoiceState.listening || state == VoiceState.processing) {
+    if (state == VoiceStatus.listening || state == VoiceStatus.processing) {
       _drawInnerRings(canvas, center, radius);
     }
   }
   
   double _getScaleForState() {
     switch (state) {
-      case VoiceState.idle:
+      case VoiceStatus.idle:
         // Gentle breathing (5% scale change)
         return 1.0 + (animationValue * 0.05);
-      case VoiceState.listening:
-      case VoiceState.speaking:
+      case VoiceStatus.listening:
+      case VoiceStatus.speaking:
         // Pulsing (15% scale change)
         return 1.0 + (animationValue * 0.15);
-      case VoiceState.processing:
+      case VoiceStatus.processing:
         // Constant size (rotation handled separately)
         return 1.0;
+      case VoiceStatus.error:
+        // Shake effect
+        return 1.0 + (animationValue * 0.1);
     }
   }
   
   List<Color> _getColorsForState() {
     switch (state) {
-      case VoiceState.idle:
+      case VoiceStatus.idle:
         return [
           AppTheme.accentFrom.withOpacity(0.6),
           AppTheme.accentTo.withOpacity(0.8),
         ];
-      case VoiceState.listening:
-      case VoiceState.speaking:
+      case VoiceStatus.listening:
+      case VoiceStatus.speaking:
         return [
           AppTheme.accentFrom,
           AppTheme.accentTo,
         ];
-      case VoiceState.processing:
+      case VoiceStatus.processing:
         return [
           AppTheme.accentTo,
           AppTheme.accentFrom,
+        ];
+      case VoiceStatus.error:
+        return [
+          Colors.red.withOpacity(0.8),
+          Colors.orange.withOpacity(0.8),
         ];
     }
   }
   
   double _getBlurForState() {
     switch (state) {
-      case VoiceState.idle:
+      case VoiceStatus.idle:
         return 20.0 + (animationValue * 20.0); // 20-40px
-      case VoiceState.listening:
-      case VoiceState.speaking:
+      case VoiceStatus.listening:
+      case VoiceStatus.speaking:
         return 40.0 + (animationValue * 40.0); // 40-80px
-      case VoiceState.processing:
+      case VoiceStatus.processing:
         return 60.0; // Constant intense blur
+      case VoiceStatus.error:
+        return 30.0 + (animationValue * 30.0); // 30-60px
     }
   }
   

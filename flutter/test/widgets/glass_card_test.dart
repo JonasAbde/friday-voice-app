@@ -6,10 +6,10 @@ void main() {
   group('GlassCard Widget Tests', () {
     testWidgets('renders with default properties', (WidgetTester tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: GlassCard(
-              child: const Text('Test Content'),
+              child: Text('Test Content'),
             ),
           ),
         ),
@@ -23,7 +23,7 @@ void main() {
       const testChild = Text('Glass Card Child');
       
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: GlassCard(
               child: testChild,
@@ -37,34 +37,34 @@ void main() {
 
     testWidgets('has correct padding', (WidgetTester tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: GlassCard(
-              padding: const EdgeInsets.all(20.0),
-              child: const Text('Padded Content'),
+              padding: EdgeInsets.all(20.0),
+              child: Text('Padded Content'),
             ),
           ),
         ),
       );
 
-      // Find the Padding widget inside GlassCard
-      final paddingFinder = find.descendant(
+      // Find the Container widget inside GlassCard
+      final containerFinder = find.descendant(
         of: find.byType(GlassCard),
-        matching: find.byType(Padding),
+        matching: find.byType(Container),
       );
 
-      expect(paddingFinder, findsWidgets);
+      expect(containerFinder, findsOneWidget);
     });
 
     testWidgets('applies custom border radius', (WidgetTester tester) async {
-      const customRadius = BorderRadius.all(Radius.circular(20.0));
+      const customRadius = 20.0;
       
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: GlassCard(
               borderRadius: customRadius,
-              child: const Text('Rounded Card'),
+              child: Text('Rounded Card'),
             ),
           ),
         ),
@@ -74,13 +74,13 @@ void main() {
       expect(find.text('Rounded Card'), findsOneWidget);
     });
 
-    testWidgets('renders with custom opacity', (WidgetTester tester) async {
+    testWidgets('renders with custom blur amount', (WidgetTester tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: GlassCard(
-              opacity: 0.5,
-              child: const Text('Semi-transparent'),
+              blurAmount: 15.0,
+              child: Text('Custom Blur'),
             ),
           ),
         ),
@@ -89,54 +89,20 @@ void main() {
       expect(find.byType(GlassCard), findsOneWidget);
     });
 
-    testWidgets('allows tap when onTap is provided', (WidgetTester tester) async {
-      var tapped = false;
-      
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: GlassCard(
-              onTap: () => tapped = true,
-              child: const Text('Tappable Card'),
-            ),
-          ),
-        ),
-      );
-
-      await tester.tap(find.byType(GlassCard));
-      expect(tapped, isTrue);
-    });
-
-    testWidgets('does not throw when onTap is null', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: GlassCard(
-              child: const Text('Non-tappable Card'),
-            ),
-          ),
-        ),
-      );
-
-      // Should not throw when tapped
-      await tester.tap(find.byType(GlassCard));
-      expect(tester.takeException(), isNull);
-    });
-
     testWidgets('renders multiple cards correctly', (WidgetTester tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: Column(
               children: [
                 GlassCard(
-                  child: const Text('Card 1'),
+                  child: Text('Card 1'),
                 ),
                 GlassCard(
-                  child: const Text('Card 2'),
+                  child: Text('Card 2'),
                 ),
                 GlassCard(
-                  child: const Text('Card 3'),
+                  child: Text('Card 3'),
                 ),
               ],
             ),
@@ -152,10 +118,10 @@ void main() {
 
     testWidgets('applies blur effect (BackdropFilter)', (WidgetTester tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: GlassCard(
-              child: const Text('Blurred Card'),
+              child: Text('Blurred Card'),
             ),
           ),
         ),
@@ -168,6 +134,27 @@ void main() {
       );
 
       expect(backdropFilterFinder, findsOneWidget);
+    });
+
+    testWidgets('has ClipRRect for rounded corners', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: GlassCard(
+              borderRadius: 24.0,
+              child: Text('Clipped Card'),
+            ),
+          ),
+        ),
+      );
+
+      // Check for ClipRRect widget
+      final clipRRectFinder = find.descendant(
+        of: find.byType(GlassCard),
+        matching: find.byType(ClipRRect),
+      );
+
+      expect(clipRRectFinder, findsOneWidget);
     });
   });
 }

@@ -21,6 +21,9 @@ void main() {
       when(() => mockNetworkService.connectionStateStream).thenAnswer(
         (_) => const Stream.empty(),
       );
+      
+      // Stub dispose to return Future<void>
+      when(() => mockNetworkService.dispose()).thenAnswer((_) async {});
     });
 
     test('initial state is disconnected', () {

@@ -50,7 +50,8 @@ class MessageBloc extends Bloc<MessageEvent, MessageState> {
     final userMessage = Message(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       type: MessageType.user,
-      content: event.content,
+      text: event.content,
+      isUser: true,
       timestamp: DateTime.now(),
     );
 

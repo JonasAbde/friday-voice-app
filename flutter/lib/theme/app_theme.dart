@@ -70,9 +70,9 @@ class AppTheme {
       fontFamily: 'Inter',
       
       // Card theme
-      cardTheme: CardTheme(
+      cardTheme: const CardThemeData(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.all(Radius.circular(24)),
         ),
         elevation: 0,
       ),

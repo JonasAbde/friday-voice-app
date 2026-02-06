@@ -41,6 +41,24 @@ class FridayVoiceClient {
         this.setupSuggestionChips(); // Setup quick action chips
         this.setupTranscriptPanel(); // Setup collapsible transcript
         this.setupDiagnostics(); // Setup diagnostics copy button
+        this.setupAdvancedToggle(); // Setup advanced settings toggle
+    }
+    
+    /**
+     * Setup advanced settings toggle
+     */
+    setupAdvancedToggle() {
+        const toggle = document.getElementById('advanced-toggle');
+        const content = document.getElementById('advanced-content');
+        const arrow = document.getElementById('advanced-arrow');
+        
+        if (toggle && content && arrow) {
+            toggle.addEventListener('click', () => {
+                const isHidden = content.classList.contains('hidden');
+                content.classList.toggle('hidden');
+                arrow.textContent = isHidden ? '▲' : '▼';
+            });
+        }
     }
     
     /**

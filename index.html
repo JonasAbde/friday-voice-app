@@ -597,36 +597,72 @@
 
     <!-- Settings Modal -->
     <div id="settings-modal" class="modal-overlay hidden">
-        <div class="modal-content glass-card w-full max-w-lg mx-4 p-8">
-            <div class="flex justify-between items-center mb-8">
-                <h2 class="text-2xl font-bold text-white">Indstillinger</h2>
+        <div class="modal-content glass-card w-full max-w-lg mx-4 p-8 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-white">⚙️ Indstillinger</h2>
                 <button id="close-settings" class="text-4xl hover:text-white/60 transition w-12 h-12 flex items-center justify-center rounded-full hover:bg-white/10">&times;</button>
             </div>
             
-            <div class="space-y-6">
+            <div class="space-y-4">
+                <!-- Audio Section -->
+                <div class="border-b border-white/10 pb-4">
+                    <h3 class="text-lg font-semibold text-white/90 mb-3">🔊 Lyd</h3>
+                    
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm font-medium text-white/70 mb-2">Sprog</label>
+                            <select class="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-purple-500">
+                                <option>Dansk</option>
+                                <option>English</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-white/70 mb-2">Stemme</label>
+                            <select id="voice-select" class="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-purple-500">
+                                <option>Indlæser stemmer...</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-white/70 mb-2">Volume</label>
+                            <div class="flex items-center gap-3">
+                                <input type="range" id="volume-slider" min="0" max="100" value="100" class="flex-1 accent-purple-500">
+                                <span id="volume-value" class="text-sm text-white/70 font-mono w-12">100%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Wake Word Section -->
+                <div class="border-b border-white/10 pb-4">
+                    <h3 class="text-lg font-semibold text-white/90 mb-3">💡 Wake Word</h3>
+                    <div class="text-xs text-white/50 space-y-1">
+                        <div>• Kræver Picovoice Porcupine setup</div>
+                        <div>• Se PORCUPINE-INTEGRATION-GUIDE.md</div>
+                        <div>• Nuværende trigger: "go" (placeholder)</div>
+                    </div>
+                </div>
+                
+                <!-- Advanced Section (Collapsible) -->
                 <div>
-                    <label class="block text-base font-medium text-white/80 mb-3">Sprog</label>
-                    <select class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white text-base focus:outline-none focus:border-purple-500">
-                        <option>Dansk</option>
-                        <option>English</option>
-                    </select>
-                </div>
-                
-                <div>
-                    <label class="block text-base font-medium text-white/80 mb-3">Stemme</label>
-                    <select id="voice-select" class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white text-base focus:outline-none focus:border-purple-500">
-                        <option>Indlæser stemmer...</option>
-                    </select>
-                </div>
-                
-                <div class="flex items-center justify-between py-3 px-4 bg-white/5 rounded-xl">
-                    <span class="text-base font-medium text-white">Debug Mode</span>
-                    <input type="checkbox" id="debug-toggle" class="w-6 h-6 accent-purple-500">
-                </div>
-                
-                <div id="debug-info" class="hidden pt-4 border-t border-white/10 text-sm text-white/50 space-y-1">
-                    <div><span class="font-mono">VPS:</span> srv1330705.hstgr.cloud</div>
-                    <div><span class="font-mono">Session:</span> friday-voice</div>
+                    <button id="advanced-toggle" class="w-full flex items-center justify-between py-2 hover:bg-white/5 rounded transition">
+                        <h3 class="text-lg font-semibold text-white/90">🔧 Avanceret</h3>
+                        <span id="advanced-arrow" class="text-white/60">▼</span>
+                    </button>
+                    
+                    <div id="advanced-content" class="hidden mt-3 space-y-3">
+                        <div class="flex items-center justify-between py-2 px-3 bg-white/5 rounded-lg">
+                            <span class="text-sm font-medium text-white/80">Debug Mode</span>
+                            <input type="checkbox" id="debug-toggle" class="w-5 h-5 accent-purple-500">
+                        </div>
+                        
+                        <div id="debug-info" class="hidden p-3 bg-black/30 rounded-lg text-xs text-white/50 space-y-1 font-mono">
+                            <div>VPS: srv1330705.hstgr.cloud</div>
+                            <div>Session: friday-voice</div>
+                            <div>Cloudflare Tunnel: Active</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

@@ -273,7 +273,7 @@ class FridayVoiceClient {
      */
     async enableWakeWord() {
         if (!this.wakeWordEngine) {
-            this.showError('Wake word detection not available');
+            this.showNotification('Wake word ikke tilgængelig', 'error', true);
             return;
         }
         
@@ -416,8 +416,8 @@ class FridayVoiceClient {
         this.ws = new WebSocket(`${protocol}//${host}/ws`);
         
         this.ws.onopen = () => {
-            this.updateStatus('Connected to Friday 🟢', true);
-            this.addMessage('friday', 'WebSocket connection established! Ready to talk.');
+            this.setState('idle'); // Set initial state
+            this.addMessageBubble('friday', 'Klar til at tale! 🎤');
         };
         
         this.ws.onmessage = (event) => {
@@ -790,7 +790,7 @@ class FridayVoiceClient {
             this.modeWake.classList.add('border-transparent', 'opacity-60');
             
             this.disableWakeWord();
-            this.updateStatus('Push-to-talk mode (hold Space)', true);
+            this.setState('idle'); // Update to idle state with danish text
         }
     }
     

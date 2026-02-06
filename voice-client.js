@@ -37,6 +37,32 @@ class FridayVoiceClient {
         this.setupSpeechRecognition();
         this.loadVoices(); // Load available voices on init
         await this.setupWakeWord(); // Initialize wake word detection
+        this.checkOnboarding(); // Show guide for first-time users
+    }
+    
+    /**
+     * Check if user has seen onboarding guide
+     */
+    checkOnboarding() {
+        const onboardingSeen = localStorage.getItem('friday-onboarding-seen');
+        const guide = document.getElementById('onboarding-guide');
+        const dismissBtn = document.getElementById('dismiss-onboarding');
+        
+        if (!onboardingSeen && guide) {
+            // Show guide for first-time users
+            guide.classList.remove('hidden');
+            
+            // Hide guide when dismissed
+            if (dismissBtn) {
+                dismissBtn.addEventListener('click', () => {
+                    guide.classList.add('hidden');
+                    localStorage.setItem('friday-onboarding-seen', 'true');
+                    this.showNotification('Guide skjult - velkommen! 🖐️', 'success');
+                });
+            }
+        } else if (guide) {
+            guide.classList.add('hidden');
+        }
     }
     
     /**

@@ -39,6 +39,82 @@ class FridayVoiceClient {
         await this.setupWakeWord(); // Initialize wake word detection
         this.checkOnboarding(); // Show guide for first-time users
         this.setupSuggestionChips(); // Setup quick action chips
+        this.setupTranscriptPanel(); // Setup collapsible transcript
+    }
+    
+    /**
+     * Setup transcript panel toggle and actions
+     */
+    setupTranscriptPanel() {
+        const toggle = document.getElementById('transcript-toggle');
+        const content = document.getElementById('transcript-content');
+        const arrow = document.getElementById('transcript-arrow');
+        const actions = document.getElementById('transcript-actions');
+        const copyBtn = document.getElementById('copy-transcript');
+        const clearBtn = document.getElementById('clear-transcript');
+        
+        this.transcriptEntries = [];
+        
+        // Toggle expand/collapse
+        if (toggle) {
+            toggle.addEventListener('click', () => {
+                const isHidden = content.classList.contains('hidden');
+                content.classList.toggle('hidden');
+                actions.classList.toggle('hidden');
+                arrow.textContent = isHidden ? '▲' : '▼';
+            });
+        }
+        
+        // Copy transcript
+        if (copyBtn) {
+            copyBtn.addEventListener('click', () => {
+                const text = this.transcriptEntries.map(e => `${e.role}: ${e.text}`).join('\n');
+                navigator.clipboard.writeText(text);
+                this.showNotification('Transskription kopieret! 📋', 'success');
+            });
+        }
+        
+        // Clear transcript
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
+                this.transcriptEntries = [];
+                this.updateTranscriptUI();
+                this.showNotification('Transskription ryddet', 'info');
+            });
+        }
+    }
+    
+    /**
+     * Add entry to transcript
+     */
+    addToTranscript(role, text) {
+        this.transcriptEntries.push({ role, text, time: Date.now() });
+        this.updateTranscriptUI();
+        
+        // Show panel after first entry
+        const panel = document.getElementById('transcript-panel');
+        if (panel && this.transcriptEntries.length === 1) {
+            panel.classList.remove('hidden');
+        }
+    }
+    
+    /**
+     * Update transcript UI
+     */
+    updateTranscriptUI() {
+        const content = document.getElementById('transcript-content');
+        if (!content) return;
+        
+        if (this.transcriptEntries.length === 0) {
+            content.innerHTML = '<div class="text-xs text-white/40">Ingen samtale endnu...</div>';
+        } else {
+            content.innerHTML = this.transcriptEntries.map(e => `
+                <div class="text-sm ${e.role === 'Du' ? 'text-blue-300' : 'text-purple-300'}">
+                    <span class="font-semibold">${e.role === 'Du' ? '🎤' : '🤖'} ${e.role}:</span>
+                    <span class="text-white/80">${e.text}</span>
+                </div>
+            `).join('');
+        }
     }
     
     /**
@@ -731,14 +807,13 @@ class FridayVoiceClient {
         // Add user message to chat
         this.addMessageBubble('user', transcript);
         
+        // Add to transcript panel
+        this.addToTranscript('Du', transcript);
+        
         // Show processing state
-        this.setOrbState('processing'); // Update orb to processing state
+        this.setState('thinking');
         this.thinkingIndicator.classList.remove('hidden');
         this.thinkingIndicator.classList.add('flex');
-        this.micBtn.classList.add('processing');
-        this.micBtn.classList.remove('recording', 'wake-active');
-        this.updateStatus('🧠 Friday tænker...', true);
-        this.updateStatusDot('processing');
         this.setMicGlow(true);
         
         // Send to Friday server
@@ -749,10 +824,10 @@ class FridayVoiceClient {
                 timestamp: Date.now()
             }));
         } else {
-            this.showError('Not connected to server');
+            this.showNotification('Ikke forbundet til server', 'error');
+            this.setState('idle');
             this.thinkingIndicator.classList.add('hidden');
             this.thinkingIndicator.classList.remove('flex');
-            this.micBtn.classList.remove('processing');
             this.setMicGlow(false);
         }
     }
@@ -772,6 +847,9 @@ class FridayVoiceClient {
         switch (data.type) {
             case 'friday_response':
                 this.addMessageBubble('friday', data.text);
+                
+                // Add to transcript panel
+                this.addToTranscript('Friday', data.text);
                 
                 // Play server-generated audio if available (ElevenLabs)
                 if (data.audioUrl) {

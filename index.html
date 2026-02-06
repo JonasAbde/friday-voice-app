@@ -504,6 +504,22 @@
 
     <!-- Chat Container -->
     <div class="glass-card w-full max-w-2xl mb-6">
+        <!-- Transcript Panel (Collapsible) -->
+        <div id="transcript-panel" class="border-b border-white/10 mb-4 hidden">
+            <button id="transcript-toggle" class="w-full flex items-center justify-between p-3 hover:bg-white/5 transition">
+                <span class="font-medium text-white/80">📝 Transskription</span>
+                <span id="transcript-arrow" class="text-white/60">▼</span>
+            </button>
+            <div id="transcript-content" class="p-3 space-y-2 hidden">
+                <div class="text-xs text-white/40">Ingen samtale endnu...</div>
+                <!-- Transcript entries appear here -->
+            </div>
+            <div id="transcript-actions" class="p-3 pt-0 flex gap-2 hidden">
+                <button id="copy-transcript" class="text-xs px-3 py-1 bg-white/10 hover:bg-white/20 rounded transition">📋 Kopier</button>
+                <button id="clear-transcript" class="text-xs px-3 py-1 bg-white/10 hover:bg-white/20 rounded transition">🗑️ Ryd</button>
+            </div>
+        </div>
+        
         <div id="chat">
             <!-- Onboarding Guide (first-time users) -->
             <div id="onboarding-guide" class="space-y-2 text-white/60 text-sm p-4 bg-white/5 rounded-xl mb-4">

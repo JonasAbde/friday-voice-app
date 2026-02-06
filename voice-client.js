@@ -171,8 +171,13 @@ class FridayVoiceClient {
             case 'friday_response':
                 this.addMessage('friday', data.text);
                 
-                // Use Web Speech API for TTS (browser-based, works everywhere!)
-                this.speakText(data.text);
+                // Play server-generated audio if available (ElevenLabs)
+                if (data.audioUrl) {
+                    this.playAudio(data.audioUrl);
+                } else {
+                    // Fallback to browser TTS if server audio failed
+                    this.speakText(data.text);
+                }
                 break;
                 
             case 'error':
@@ -183,6 +188,18 @@ class FridayVoiceClient {
                 this.updateStatus(data.message, true);
                 break;
         }
+    }
+    
+    /**
+     * Play audio file from server (ElevenLabs TTS)
+     * @param {string} audioUrl - URL to audio file
+     */
+    playAudio(audioUrl) {
+        const audio = new Audio(audioUrl);
+        audio.play().catch(err => {
+            console.error('⚠️ Audio playback failed:', err);
+            // Don't fallback to TTS here - audio file should work
+        });
     }
     
     /**

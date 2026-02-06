@@ -8,12 +8,15 @@
  * - Express serves static HTML/JS files
  * - WebSocket handles real-time bidirectional communication
  * - OpenClaw CLI integration for AI responses
- * - Future: ElevenLabs TTS for voice output
+ * - ElevenLabs API for high-quality Danish TTS
  * 
  * @author Friday (AI Agent)
- * @version 0.1.0-alpha
+ * @version 0.2.0-alpha
  * @created 2026-02-06
  */
+
+// Load environment variables
+require('dotenv').config();
 
 const WebSocket = require('ws');
 const express = require('express');

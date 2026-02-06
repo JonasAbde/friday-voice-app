@@ -168,10 +168,11 @@ class FridayVoiceServer {
             // Escape double quotes in message
             const escapedMessage = message.replace(/"/g, '\\"');
             
-            // Use dedicated voice session (NOT main - that's for Discord)
-            const command = `openclaw agent --session-id voice-interface --message "${escapedMessage}"`;
+            // Use MAIN session with FULL context and tools!
+            // This gives voice app access to Calendar, Gmail, Billy, Memory, etc.
+            const command = `openclaw agent --agent main --message "${escapedMessage}"`;
             
-            console.log('🤖 Calling Friday AI (voice session)...');
+            console.log('🤖 Calling Friday AI (MAIN session - full tools)...');
             
             exec(command, { maxBuffer: 1024 * 1024, timeout: 30000 }, (error, stdout, stderr) => {
                 if (error) {

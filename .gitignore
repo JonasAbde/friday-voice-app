@@ -2,6 +2,9 @@
 node_modules/
 package-lock.json
 
+# Audio cache (TTS generated files)
+audio-cache/
+
 # Logs
 logs/
 *.log

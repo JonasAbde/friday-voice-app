@@ -20,6 +20,7 @@ const express = require('express');
 const path = require('path');
 const { exec } = require('child_process');
 const fs = require('fs');
+const TTSEngine = require('./tts-integration');
 
 /**
  * Main server class handling HTTP and WebSocket connections
@@ -34,6 +35,7 @@ class FridayVoiceServer {
         this.app = express();  // HTTP server for static files
         this.wss = null;  // WebSocket server instance
         this.clients = new Set();  // Track active WebSocket connections
+        this.tts = new TTSEngine();  // TTS engine for voice output
         
         this.init();
     }
@@ -51,12 +53,16 @@ class FridayVoiceServer {
     /**
      * Configure Express HTTP server
      * - Serves static files (HTML, CSS, JS)
+     * - Serves TTS audio files from cache
      * - Provides health check endpoint for monitoring
      */
     setupExpress() {
         // Serve static files from current directory
         // This includes index.html, voice-client.js, etc.
         this.app.use(express.static(path.join(__dirname)));
+        
+        // Serve TTS audio files from cache directory
+        this.app.use('/audio', express.static(path.join(__dirname, 'audio-cache')));
         
         // Health check endpoint for monitoring/debugging
         // Returns server status, client count, uptime
@@ -65,7 +71,8 @@ class FridayVoiceServer {
                 status: 'online',
                 server: 'Friday Voice Server',
                 clients: this.clients.size,  // Number of active WebSocket connections
-                uptime: process.uptime()  // Server uptime in seconds
+                uptime: process.uptime(),  // Server uptime in seconds
+                tts: 'ElevenLabs (OpenClaw)'
             });
         });
         
@@ -185,11 +192,20 @@ class FridayVoiceServer {
         });
     }
     
+    /**
+     * Generate TTS audio for Friday's response
+     * Uses TTS engine with ElevenLabs/OpenClaw integration
+     * @param {string} text - Friday's text response
+     * @returns {Promise<string|null>} URL to audio file or null if failed
+     */
     async generateTTS(text) {
-        // For now, return null (we'll integrate ElevenLabs later)
-        // This is where Friday will call TTS API
-        console.log('🔊 TTS generation (placeholder):', text.substring(0, 50));
-        return null; // TODO: Implement TTS
+        try {
+            const audioUrl = await this.tts.generateAudio(text);
+            return audioUrl;
+        } catch (error) {
+            console.error('⚠️  TTS failed (fallback to text-only):', error.message);
+            return null; // Graceful degradation - still show text
+        }
     }
     
     send(ws, data) {

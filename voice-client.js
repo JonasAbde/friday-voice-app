@@ -38,6 +38,35 @@ class FridayVoiceClient {
         this.loadVoices(); // Load available voices on init
         await this.setupWakeWord(); // Initialize wake word detection
         this.checkOnboarding(); // Show guide for first-time users
+        this.setupSuggestionChips(); // Setup quick action chips
+    }
+    
+    /**
+     * Setup suggestion chip click handlers
+     */
+    setupSuggestionChips() {
+        const chips = document.querySelectorAll('.chip');
+        const chipContainer = document.getElementById('suggestion-chips');
+        
+        // Show chips when idle
+        if (chipContainer) {
+            chipContainer.classList.remove('hidden');
+        }
+        
+        chips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                const action = chip.getAttribute('data-action');
+                if (action && this.ws && this.ws.readyState === WebSocket.OPEN) {
+                    // Send chip action as voice message
+                    this.setState('thinking');
+                    this.ws.send(JSON.stringify({
+                        type: 'voice_message',
+                        transcript: action
+                    }));
+                    this.showNotification(`Udfører: ${action}`, 'info');
+                }
+            });
+        });
     }
     
     /**

@@ -448,6 +448,30 @@
         @keyframes spinner-rotate {
             to { transform: rotate(360deg); }
         }
+        
+        /* === SUGGESTION CHIPS === */
+        .chip {
+            background: rgba(102,126,234,0.1);
+            border: 1px solid rgba(102,126,234,0.3);
+            color: rgba(255,255,255,0.9);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s var(--ease-smooth);
+            backdrop-filter: blur(10px);
+        }
+        
+        .chip:hover {
+            background: rgba(102,126,234,0.2);
+            border-color: rgba(102,126,234,0.5);
+            transform: translateY(-2px);
+        }
+        
+        .chip:active {
+            transform: scale(0.95);
+        }
     </style>
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen p-4 md:p-8" style="padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);">
@@ -464,9 +488,17 @@
     </div>
 
     <!-- Voice Orb (Center) -->
-    <div class="mb-8">
+    <div class="mb-6 flex flex-col items-center gap-4">
         <div id="voice-orb-container">
             <canvas id="voice-orb" width="200" height="200"></canvas>
+        </div>
+        
+        <!-- Suggestion Chips (Quick Actions) -->
+        <div id="suggestion-chips" class="flex flex-wrap gap-2 justify-center max-w-lg hidden">
+            <button class="chip" data-action="📧 Ny lead fra inbox">📧 Ny lead</button>
+            <button class="chip" data-action="📅 Hvad er bookinger i dag?">📅 Bookinger</button>
+            <button class="chip" data-action="💰 Opret faktura">💰 Faktura</button>
+            <button class="chip" data-action="🕐 Hvad er klokken?">🕐 Klokken</button>
         </div>
     </div>
 

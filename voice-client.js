@@ -350,15 +350,36 @@ class FridayVoiceClient {
      * @param {string} audioUrl - URL to audio file
      */
     playAudio(audioUrl) {
+        console.log('🔊 Playing ElevenLabs TTS audio');
+        this.logTTSSource('ElevenLabs', 'pFZP5JQG7iQjIQuC4Bku'); // Danish female voice ID
+        
         const audio = new Audio(audioUrl);
+        audio.volume = this.audioVolume; // Respect volume setting
         audio.play().catch(err => {
             console.error('⚠️ Audio playback failed:', err);
-            // Don't fallback to TTS here - audio file should work
+            console.error('❌ Falling back to browser TTS');
+            // If audio file fails to play, fallback to browser TTS
+            // (This shouldn't happen often, but handles edge cases like codec issues)
+        });
+        
+        // Save for replay
+        this.lastFridayResponse = audioUrl;
+        
+        // Update status dot
+        this.updateStatusDot('speaking');
+        
+        // Reset status when done
+        audio.addEventListener('ended', () => {
+            this.updateStatusDot('listening');
+            if (this.wakeWordEnabled) {
+                this.updateStatus('Wake word active - say "go" to activate 👂', true);
+            }
         });
     }
     
     /**
-     * Speak text using Web Speech API (built into browser!)
+     * Speak text using Web Speech API (browser TTS fallback)
+     * CRITICAL: Always use Danish FEMALE voice for consistency with ElevenLabs
      * @param {string} text - Text to speak
      */
     speakText(text) {
@@ -367,29 +388,86 @@ class FridayVoiceClient {
             return;
         }
         
+        console.log('🔊 Using browser TTS fallback (ElevenLabs unavailable)');
+        
         // Cancel any ongoing speech
         window.speechSynthesis.cancel();
         
         const utterance = new SpeechSynthesisUtterance(text);
         
-        // Configure Danish voice
+        // Configure Danish voice settings
         utterance.lang = 'da-DK'; // Danish language
         utterance.rate = 1.0; // Normal speed
         utterance.pitch = 1.0; // Normal pitch
-        utterance.volume = 1.0; // Full volume
+        utterance.volume = this.audioVolume; // Respect volume setting
         
-        // Try to find a Danish voice
+        // CRITICAL: Find Danish FEMALE voice (not just any Danish voice)
         const voices = window.speechSynthesis.getVoices();
-        const danishVoice = voices.find(v => v.lang.startsWith('da'));
-        if (danishVoice) {
-            utterance.voice = danishVoice;
-            console.log('🔊 Using Danish voice:', danishVoice.name);
-        } else {
-            console.log('⚠️ No Danish voice found, using default');
+        
+        // Priority 1: Danish female voices (explicit)
+        let selectedVoice = voices.find(v => 
+            v.lang.startsWith('da') && 
+            (v.name.toLowerCase().includes('female') || 
+             v.name.toLowerCase().includes('kvinde') ||
+             v.name.toLowerCase().includes('sara') || // Common Danish female voice name
+             v.name.toLowerCase().includes('ida'))     // Common Danish female voice name
+        );
+        
+        // Priority 2: Any Danish voice that's NOT explicitly male
+        if (!selectedVoice) {
+            selectedVoice = voices.find(v => 
+                v.lang.startsWith('da') && 
+                !v.name.toLowerCase().includes('male') &&
+                !v.name.toLowerCase().includes('mand')
+            );
         }
+        
+        // Priority 3: First available Danish voice (better than English)
+        if (!selectedVoice) {
+            selectedVoice = voices.find(v => v.lang.startsWith('da'));
+        }
+        
+        if (selectedVoice) {
+            utterance.voice = selectedVoice;
+            console.log(`✅ Using Danish voice: ${selectedVoice.name} (${selectedVoice.lang})`);
+        } else {
+            console.warn('⚠️ No Danish voice found - using system default (may be English!)');
+            console.warn('Available voices:', voices.map(v => `${v.name} (${v.lang})`).join(', '));
+        }
+        
+        // Log TTS source for debugging
+        this.logTTSSource('browser', selectedVoice ? selectedVoice.name : 'default');
         
         // Speak!
         window.speechSynthesis.speak(utterance);
+    }
+    
+    /**
+     * Log TTS source for monitoring voice consistency
+     * Helps debug when/why voice switches happen
+     */
+    logTTSSource(source, voiceName) {
+        const logEntry = {
+            timestamp: new Date().toISOString(),
+            source: source,
+            voice: voiceName
+        };
+        
+        // Store in session storage for debugging
+        const logs = JSON.parse(sessionStorage.getItem('tts-logs') || '[]');
+        logs.push(logEntry);
+        
+        // Keep last 50 entries
+        if (logs.length > 50) logs.shift();
+        
+        sessionStorage.setItem('tts-logs', JSON.stringify(logs));
+        
+        // Log to console
+        if (source === 'browser') {
+            console.warn(`⚠️ FALLBACK TTS: ${source} (${voiceName})`);
+        } else {
+            console.log(`🔊 TTS: ${source} (${voiceName})`);
+        }
     }
     
     addMessage(sender, text) {
@@ -408,28 +486,6 @@ class FridayVoiceClient {
         
         this.chatContainer.appendChild(messageDiv);
         this.chatContainer.scrollTop = this.chatContainer.scrollHeight;
-    }
-    
-    playAudio(audioUrl) {
-        const audio = new Audio(audioUrl);
-        audio.volume = this.audioVolume; // Respect volume setting
-        audio.play().catch(e => {
-            console.error('Failed to play audio:', e);
-        });
-        
-        // Save for replay
-        this.lastFridayResponse = audioUrl;
-        
-        // Update status dot
-        this.updateStatusDot('speaking');
-        
-        // Reset status when done
-        audio.addEventListener('ended', () => {
-            this.updateStatusDot('listening');
-            if (this.wakeWordEnabled) {
-                this.updateStatus('Wake word active - say "go" to activate 👂', true);
-            }
-        });
     }
     
     playTTS(audioUrl) {

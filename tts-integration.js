@@ -36,10 +36,15 @@ class TTSEngine {
     
     /**
      * Generate audio from text using ElevenLabs API
+     * Includes retry logic with exponential backoff
      * @param {string} text - Text to convert to speech
+     * @param {number} attempt - Current attempt number (for retry logic)
      * @returns {Promise<string>} Path to audio file
      */
-    async generateAudio(text) {
+    async generateAudio(text, attempt = 1) {
+        const maxAttempts = 3;
+        const timeout = 10000; // 10 second timeout per request
+        
         return new Promise((resolve, reject) => {
             const timestamp = Date.now();
             const filename = `friday-${timestamp}.mp3`;
@@ -66,15 +71,32 @@ class TTSEngine {
                     'Accept': 'audio/mpeg',
                     'Content-Type': 'application/json',
                     'xi-api-key': this.apiKey
-                }
+                },
+                timeout: timeout
             };
             
-            console.log('🔊 Generating ElevenLabs TTS audio...');
+            console.log(`🔊 Generating ElevenLabs TTS audio (attempt ${attempt}/${maxAttempts})...`);
+            
+            // Set request timeout
+            const timeoutHandle = setTimeout(() => {
+                req.destroy();
+                console.error(`⏱️  ElevenLabs request timeout (${timeout}ms)`);
+            }, timeout);
             
             const req = https.request(url, options, (res) => {
+                clearTimeout(timeoutHandle);
+                
                 if (res.statusCode !== 200) {
-                    console.error('❌ ElevenLabs API error:', res.statusCode);
-                    reject(new Error(`API returned ${res.statusCode}`));
+                    const errorMsg = `API returned ${res.statusCode}`;
+                    console.error('❌ ElevenLabs API error:', errorMsg);
+                    
+                    // Log response body for debugging
+                    let body = '';
+                    res.on('data', chunk => body += chunk);
+                    res.on('end', () => {
+                        console.error('Error response:', body);
+                        this.handleRetry(text, attempt, maxAttempts, errorMsg, resolve, reject);
+                    });
                     return;
                 }
                 
@@ -83,24 +105,80 @@ class TTSEngine {
                 
                 fileStream.on('finish', () => {
                     fileStream.close();
-                    console.log('✅ ElevenLabs audio generated:', filename);
+                    console.log(`✅ ElevenLabs audio generated: ${filename} (attempt ${attempt})`);
+                    
+                    // Log success for monitoring
+                    this.logTTSMetrics('success', attempt);
+                    
                     resolve(`/audio/${filename}`);
                 });
                 
                 fileStream.on('error', (err) => {
                     fs.unlink(outputPath, () => {});
-                    reject(err);
+                    console.error('❌ File write error:', err.message);
+                    this.handleRetry(text, attempt, maxAttempts, err.message, resolve, reject);
                 });
             });
             
             req.on('error', (err) => {
+                clearTimeout(timeoutHandle);
                 console.error('❌ ElevenLabs request failed:', err.message);
-                reject(err);
+                this.handleRetry(text, attempt, maxAttempts, err.message, resolve, reject);
+            });
+            
+            req.on('timeout', () => {
+                clearTimeout(timeoutHandle);
+                req.destroy();
+                console.error('⏱️  Request timeout');
+                this.handleRetry(text, attempt, maxAttempts, 'timeout', resolve, reject);
             });
             
             req.write(payload);
             req.end();
         });
+    }
+    
+    /**
+     * Handle retry logic with exponential backoff
+     */
+    async handleRetry(text, attempt, maxAttempts, errorMsg, resolve, reject) {
+        if (attempt < maxAttempts) {
+            // Exponential backoff: 1s, 2s, 4s
+            const backoffMs = Math.pow(2, attempt - 1) * 1000;
+            console.log(`🔄 Retrying in ${backoffMs}ms...`);
+            
+            setTimeout(async () => {
+                try {
+                    const result = await this.generateAudio(text, attempt + 1);
+                    resolve(result);
+                } catch (err) {
+                    reject(err);
+                }
+            }, backoffMs);
+        } else {
+            console.error(`❌ ElevenLabs failed after ${maxAttempts} attempts`);
+            this.logTTSMetrics('failure', attempt);
+            reject(new Error(`Failed after ${maxAttempts} attempts: ${errorMsg}`));
+        }
+    }
+    
+    /**
+     * Log TTS metrics for monitoring
+     */
+    logTTSMetrics(status, attempts) {
+        const logEntry = {
+            timestamp: new Date().toISOString(),
+            status: status,
+            attempts: attempts,
+            source: 'ElevenLabs'
+        };
+        
+        const logFile = path.join(this.cacheDir, 'tts-metrics.jsonl');
+        fs.appendFileSync(logFile, JSON.stringify(logEntry) + '\n');
+        
+        if (status === 'failure') {
+            console.error('⚠️  TTS FAILURE LOGGED - Check fallback behavior!');
+        }
     }
     
     /**

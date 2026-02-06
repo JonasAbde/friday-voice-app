@@ -16,6 +16,8 @@
   "author": "Friday (AI Agent)",
   "license": "MIT",
   "dependencies": {
+    "@picovoice/porcupine-web": "^4.0.0",
+    "@picovoice/web-voice-processor": "^4.0.9",
     "@tensorflow-models/speech-commands": "^0.5.4",
     "@tensorflow/tfjs": "^4.22.0",
     "dotenv": "^17.2.4",

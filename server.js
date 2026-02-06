@@ -60,6 +60,14 @@ class FridayVoiceServer {
      * - Provides health check endpoint for monitoring
      */
     setupExpress() {
+        // Enable CORS headers for SharedArrayBuffer (required by Porcupine)
+        // This enables multi-threaded WASM processing for better performance
+        this.app.use((req, res, next) => {
+            res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+            res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+            next();
+        });
+        
         // Serve static files from current directory
         // This includes index.html, voice-client.js, etc.
         this.app.use(express.static(path.join(__dirname)));

@@ -438,13 +438,25 @@ class FridayVoiceClient {
         
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
-            if (e.code === 'Space' && !e.repeat) {
+            // Escape key closes modal
+            if (e.key === 'Escape' && !this.settingsModal.classList.contains('hidden')) {
+                this.closeSettingsModal();
+                return;
+            }
+            
+            // Space for PTT (when not in modal)
+            if (e.code === 'Space' && !e.repeat && this.settingsModal.classList.contains('hidden')) {
                 e.preventDefault();
                 if (this.currentMode === 'push') {
                     this.startRecording();
                 }
             } else if (e.code === 'Escape') {
                 this.stopRecording();
+            }
+            
+            // Tab trap in modal
+            if (e.key === 'Tab' && !this.settingsModal.classList.contains('hidden')) {
+                this.handleModalTabKey(e);
             }
         });
         
@@ -1038,21 +1050,63 @@ class FridayVoiceClient {
     }
 
     /**
-     * Open settings modal
+     * Open settings modal with focus trap
      */
     openSettings() {
         console.log('📖 Opening settings modal...');
+        
+        // Save currently focused element
+        this.previousFocus = document.activeElement;
+        
+        // Show modal
         this.settingsModal.classList.remove('hidden');
         this.settingsModal.classList.add('flex');
+        
+        // Focus first focusable element
+        const firstFocusable = this.settingsModal.querySelector('button, select, input, [tabindex]:not([tabindex="-1"])');
+        if (firstFocusable) {
+            firstFocusable.focus();
+        }
     }
     
     /**
-     * Close settings modal
+     * Close settings modal and return focus
      */
     closeSettingsModal() {
         console.log('❌ Closing settings modal...');
         this.settingsModal.classList.add('hidden');
         this.settingsModal.classList.remove('flex');
+        
+        // Return focus to element that opened modal
+        if (this.previousFocus) {
+            this.previousFocus.focus();
+        }
+    }
+    
+    /**
+     * Handle Tab key in modal (focus trap)
+     */
+    handleModalTabKey(e) {
+        const focusableElements = this.settingsModal.querySelectorAll(
+            'button, select, input, [tabindex]:not([tabindex="-1"])'
+        );
+        
+        const firstFocusable = focusableElements[0];
+        const lastFocusable = focusableElements[focusableElements.length - 1];
+        
+        if (e.shiftKey) {
+            // Shift+Tab - going backwards
+            if (document.activeElement === firstFocusable) {
+                e.preventDefault();
+                lastFocusable.focus();
+            }
+        } else {
+            // Tab - going forwards
+            if (document.activeElement === lastFocusable) {
+                e.preventDefault();
+                firstFocusable.focus();
+            }
+        }
     }
 }
 

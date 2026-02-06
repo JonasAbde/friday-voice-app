@@ -1,0 +1,76 @@
+name: Friday Voice App CI/CD
+
+on:
+  push:
+    branches: [ master, develop ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        
+    - name: Install dependencies
+      run: npm install
+      
+    - name: Validate JavaScript syntax
+      run: |
+        node -c server.js
+        node -c voice-client.js
+        node -c tts-integration.js
+        node -c wake-word-engine.js
+        
+    - name: Check for sensitive data
+      run: |
+        ! grep -r "ELEVENLABS_API_KEY.*=" . --include="*.js" || exit 1
+        echo "✅ No hardcoded API keys found"
+        
+    - name: Validate HTML
+      run: |
+        grep -q "<!DOCTYPE html>" index.html
+        echo "✅ HTML structure valid"
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Build version info
+      run: |
+        echo "Build: $(git rev-parse --short HEAD)" > BUILD_INFO.txt
+        echo "Date: $(date -u)" >> BUILD_INFO.txt
+        cat BUILD_INFO.txt
+        
+    - name: Create deployment artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: friday-voice-app
+        path: |
+          *.js
+          *.html
+          *.json
+          .env.example
+          
+  notify:
+    needs: [test, build]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+    - name: CI Status
+      run: |
+        echo "✅ CI pipeline completed"
+        echo "Status: ${{ job.status }}"

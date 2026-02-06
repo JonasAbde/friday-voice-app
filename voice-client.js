@@ -24,6 +24,9 @@ class FridayVoiceClient {
         this.pingMs = null;
         this.lastPingTime = null;
         
+        // Permission tracking
+        this.micPermissionGranted = false;
+        
         this.init();
     }
     
@@ -301,7 +304,22 @@ class FridayVoiceClient {
      */
     async enableWakeWord() {
         if (!this.wakeWordEngine) {
-            this.showNotification('Wake word ikke tilgængelig', 'error', true);
+            // Detect why wake word isn't available and show helpful message
+            let reason = 'Wake word ikke tilgængelig';
+            let fix = null;
+            
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                reason = 'Din browser understøtter ikke mikrofon';
+                fix = 'Brug Chrome, Edge eller Safari';
+            } else if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+                reason = 'Mikrofon kræver HTTPS';
+                fix = 'Brug sikker forbindelse (https://)';
+            } else {
+                reason = 'Wake word engine ikke initialiseret';
+                fix = 'Genindlæs siden eller brug Push-to-Talk';
+            }
+            
+            this.showNotification(`${reason}${fix ? ' → ' + fix : ''}`, 'error', true);
             return;
         }
         
@@ -558,10 +576,18 @@ class FridayVoiceClient {
         }
     }
     
-    startRecording() {
+    async startRecording() {
         if (!this.recognition) {
             this.showNotification('Mikrofon ikke tilgængelig', 'error');
             return;
+        }
+        
+        // Check microphone permission first
+        if (!this.micPermissionGranted) {
+            const granted = await this.requestMicrophonePermission();
+            if (!granted) {
+                return; // User denied permission
+            }
         }
         
         this.isRecording = true;
@@ -576,6 +602,40 @@ class FridayVoiceClient {
             console.error('Failed to start recording:', e);
             this.stopRecording();
             this.showNotification('Kunne ikke starte optagelse', 'error');
+        }
+    }
+    
+    /**
+     * Request microphone permission with explanatory prompt
+     */
+    async requestMicrophonePermission() {
+        try {
+            // Show explanation before browser prompt
+            const userConfirmed = confirm(
+                '🎤 Friday har brug for mikrofon adgang\n\n' +
+                'Vi bruger din mikrofon til:\n' +
+                '• Lytte til dine kommandoer\n' +
+                '• Transskribere tale til tekst\n\n' +
+                'Klik OK for at fortsætte'
+            );
+            
+            if (!userConfirmed) {
+                this.showNotification('Mikrofon adgang nægtet', 'error');
+                return false;
+            }
+            
+            // Request permission
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            stream.getTracks().forEach(track => track.stop()); // Release immediately
+            
+            this.micPermissionGranted = true;
+            this.showNotification('Mikrofon adgang godkendt ✅', 'success');
+            return true;
+            
+        } catch (error) {
+            console.error('Microphone permission denied:', error);
+            this.showNotification('Mikrofon adgang nægtet - åbn browserindstillinger', 'error', true);
+            return false;
         }
     }
     

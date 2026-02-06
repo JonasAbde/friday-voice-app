@@ -31,7 +31,8 @@ jobs:
         
     - name: Check for sensitive data
       run: |
-        ! grep -r "ELEVENLABS_API_KEY.*=" . --include="*.js" || exit 1
+        # Check for hardcoded API keys (not process.env references)
+        ! grep -r "ELEVENLABS_API_KEY\s*=\s*['\"]" . --include="*.js" --exclude-dir=node_modules || exit 1
         echo "✅ No hardcoded API keys found"
         
     - name: Validate HTML

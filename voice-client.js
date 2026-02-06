@@ -16,6 +16,31 @@ class FridayVoiceClient {
         this.setupUI();
         this.connectWebSocket();
         this.setupSpeechRecognition();
+        this.loadVoices(); // Load available voices on init
+    }
+    
+    /**
+     * Load available speech synthesis voices
+     * Needed because voices load async in browsers
+     */
+    loadVoices() {
+        if (!('speechSynthesis' in window)) return;
+        
+        // Voices load asynchronously, so we need to listen for the event
+        window.speechSynthesis.addEventListener('voiceschanged', () => {
+            const voices = window.speechSynthesis.getVoices();
+            const danishVoices = voices.filter(v => v.lang.startsWith('da'));
+            
+            console.log('📢 Available voices:', voices.length);
+            console.log('🇩🇰 Danish voices:', danishVoices.map(v => v.name).join(', ') || 'None found');
+            
+            if (danishVoices.length === 0) {
+                console.warn('⚠️ No Danish TTS voices available - will use system default');
+            }
+        });
+        
+        // Trigger voice loading
+        window.speechSynthesis.getVoices();
     }
     
     setupUI() {
@@ -146,10 +171,8 @@ class FridayVoiceClient {
             case 'friday_response':
                 this.addMessage('friday', data.text);
                 
-                // Play audio if available
-                if (data.audioUrl) {
-                    this.playAudio(data.audioUrl);
-                }
+                // Use Web Speech API for TTS (browser-based, works everywhere!)
+                this.speakText(data.text);
                 break;
                 
             case 'error':
@@ -160,6 +183,41 @@ class FridayVoiceClient {
                 this.updateStatus(data.message, true);
                 break;
         }
+    }
+    
+    /**
+     * Speak text using Web Speech API (built into browser!)
+     * @param {string} text - Text to speak
+     */
+    speakText(text) {
+        if (!('speechSynthesis' in window)) {
+            console.warn('⚠️ Speech synthesis not supported');
+            return;
+        }
+        
+        // Cancel any ongoing speech
+        window.speechSynthesis.cancel();
+        
+        const utterance = new SpeechSynthesisUtterance(text);
+        
+        // Configure Danish voice
+        utterance.lang = 'da-DK'; // Danish language
+        utterance.rate = 1.0; // Normal speed
+        utterance.pitch = 1.0; // Normal pitch
+        utterance.volume = 1.0; // Full volume
+        
+        // Try to find a Danish voice
+        const voices = window.speechSynthesis.getVoices();
+        const danishVoice = voices.find(v => v.lang.startsWith('da'));
+        if (danishVoice) {
+            utterance.voice = danishVoice;
+            console.log('🔊 Using Danish voice:', danishVoice.name);
+        } else {
+            console.log('⚠️ No Danish voice found, using default');
+        }
+        
+        // Speak!
+        window.speechSynthesis.speak(utterance);
     }
     
     addMessage(sender, text) {

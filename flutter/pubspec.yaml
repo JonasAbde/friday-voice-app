@@ -1,8 +1,8 @@
 name: friday_voice_app
-description: Friday AI Voice Assistant - Business management through voice commands
-publish_to: 'none' # Remove if publishing to pub.dev
+description: Friday AI Voice Assistant - Real-time voice control for business management
+publish_to: 'none'
 
-version: 1.0.0+1
+version: 0.2.0+2
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -12,78 +12,46 @@ dependencies:
     sdk: flutter
 
   # UI & Material Design
-  cupertino_icons: ^1.0.6
+  cupertino_icons: ^1.0.8
+
+  # State Management
+  flutter_bloc: ^8.1.6
+  bloc: ^8.1.4
   
-  # State Management (choose one based on your architecture)
-  # provider: ^6.1.1
-  # riverpod: ^2.4.9
-  # bloc: ^8.1.2
-
   # Voice & Audio
-  # speech_to_text: ^6.5.1
-  # flutter_tts: ^3.8.3
-  # audio_session: ^0.1.16
-  # just_audio: ^0.9.36
-
-  # API & Networking
-  # http: ^1.1.2
-  # dio: ^5.4.0
-
-  # Calendar Integration
-  # googleapis: ^12.0.0
-  # googleapis_auth: ^1.4.1
-
-  # Local Storage
-  # shared_preferences: ^2.2.2
-  # hive: ^2.2.3
-  # hive_flutter: ^1.1.0
-
-  # Utilities
-  # intl: ^0.18.1  # Internationalization
-  # path_provider: ^2.1.1
-  # url_launcher: ^6.2.2
+  speech_to_text: ^7.0.0
+  flutter_tts: ^4.0.2
+  record: ^5.1.2
+  permission_handler: ^11.3.1
+  
+  # Networking
+  web_socket_channel: ^3.0.1
+  rxdart: ^0.28.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
   # Linting & Code Quality
-  flutter_lints: ^3.0.1
-
-  # Icon Generation
-  flutter_launcher_icons: ^0.13.1
+  flutter_lints: ^4.0.0
+  very_good_analysis: ^6.0.0  # Stricter lint rules
 
   # Testing
-  # mockito: ^5.4.4
-  # integration_test:
-  #   sdk: flutter
+  bloc_test: ^9.1.7           # BLoC testing utilities
+  mocktail: ^1.0.4            # Mocking (better than mockito for null-safety)
+  
+  # Icon Generation
+  flutter_launcher_icons: ^0.13.1
 
 # App Icon Configuration
 flutter_launcher_icons:
   android: true
   ios: true
   image_path: "assets/icon/friday-icon.png"
-  
-  # Android Adaptive Icons (optional but recommended)
   adaptive_icon_foreground: "assets/icon/friday-foreground.png"
-  adaptive_icon_background: "#2196F3"  # Friday brand color
-  
+  adaptive_icon_background: "#2196F3"
   min_sdk_android: 21
-  remove_alpha_ios: true  # Required for iOS
+  remove_alpha_ios: true
 
 flutter:
   uses-material-design: true
-
-  # Assets
-  # assets:
-  #   - assets/images/
-  #   - assets/sounds/
-  #   - assets/icon/
-
-  # Fonts
-  # fonts:
-  #   - family: Roboto
-  #     fonts:
-  #       - asset: fonts/Roboto-Regular.ttf
-  #       - asset: fonts/Roboto-Bold.ttf
-  #         weight: 700

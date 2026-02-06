@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base href="$FLUTTER_BASE_HREF">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  
+  <!-- PWA Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Friday">
+  <meta name="mobile-web-app-capable" content="yes">
+  
+  <!-- Theme -->
+  <meta name="theme-color" content="#8B5CF6">
+  <meta name="msapplication-TileColor" content="#8B5CF6">
+  
+  <!-- SEO -->
+  <meta name="description" content="Friday - Your autonomous AI voice assistant built by Friday">
+  <meta name="keywords" content="voice assistant, AI, Friday, speech recognition, TTS">
+  <meta name="author" content="Friday AI">
+  
+  <!-- Open Graph -->
+  <meta property="og:title" content="Friday Voice Assistant">
+  <meta property="og:description" content="Your autonomous AI voice assistant">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="/icons/icon-512x512.png">
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Friday Voice Assistant">
+  <meta name="twitter:description" content="Your autonomous AI voice assistant">
+  <meta name="twitter:image" content="/icons/icon-512x512.png">
+  
+  <title>Friday Voice Assistant</title>
+  
+  <!-- Manifest -->
+  <link rel="manifest" href="manifest.json">
+  
+  <!-- Icons -->
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-192x192.png">
+  <link rel="shortcut icon" type="image/png" href="favicon.png">
+  
+  <!-- Preconnect to API domains -->
+  <link rel="preconnect" href="https://api.openai.com">
+  <link rel="dns-prefetch" href="https://api.openai.com">
+  
+  <!-- Service Worker Registration -->
+  <script>
+    // Service Worker registration
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(registration => {
+            console.log('[SW] Registered:', registration.scope);
+            
+            // Check for updates periodically
+            setInterval(() => {
+              registration.update();
+            }, 60000); // Every minute
+            
+            // Listen for updates
+            registration.addEventListener('updatefound', () => {
+              const newWorker = registration.installing;
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  // New version available
+                  if (confirm('New version available! Reload to update?')) {
+                    newWorker.postMessage({ type: 'SKIP_WAITING' });
+                    window.location.reload();
+                  }
+                }
+              });
+            });
+          })
+          .catch(error => {
+            console.error('[SW] Registration failed:', error);
+          });
+        
+        // Handle controller change (new SW activated)
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          window.location.reload();
+        });
+      });
+    }
+    
+    // Install prompt
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      
+      // Track visit count
+      const visitCount = parseInt(localStorage.getItem('visitCount') || '0') + 1;
+      localStorage.setItem('visitCount', visitCount);
+      
+      // Show install button on 2nd visit (after 30s)
+      if (visitCount >= 2 && !localStorage.getItem('installDismissed')) {
+        setTimeout(() => {
+          showInstallPrompt();
+        }, 30000);
+      }
+    });
+    
+    function showInstallPrompt() {
+      // Create install banner
+      const banner = document.createElement('div');
+      banner.id = 'install-banner';
+      banner.innerHTML = `
+        <style>
+          #install-banner {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            animation: slideUp 0.3s ease-out;
+            max-width: 90%;
+          }
+          @keyframes slideUp {
+            from { transform: translateX(-50%) translateY(100px); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+          }
+          #install-banner button {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+          }
+          #install-banner .dismiss {
+            background: transparent;
+            color: white;
+            text-decoration: underline;
+          }
+        </style>
+        <div>
+          <strong>Install Friday</strong>
+          <p style="margin: 4px 0 0 0; font-size: 14px; opacity: 0.9;">Add to home screen for offline access</p>
+        </div>
+        <button onclick="installApp()">Install</button>
+        <button class="dismiss" onclick="dismissInstall()">Not now</button>
+      `;
+      document.body.appendChild(banner);
+    }
+    
+    window.installApp = async function() {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log(`Install ${outcome}`);
+      deferredPrompt = null;
+      document.getElementById('install-banner')?.remove();
+    };
+    
+    window.dismissInstall = function() {
+      localStorage.setItem('installDismissed', Date.now());
+      document.getElementById('install-banner')?.remove();
+    };
+    
+    // Detect if running as installed PWA
+    window.addEventListener('load', () => {
+      if (window.matchMedia('(display-mode: standalone)').matches) {
+        console.log('[PWA] Running as installed app');
+        document.body.classList.add('pwa-installed');
+      }
+    });
+  </script>
+</head>
+<body>
+  <!-- Loading Screen -->
+  <div id="loading">
+    <style>
+      #loading {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+      }
+      .spinner {
+        width: 64px;
+        height: 64px;
+        border: 4px solid rgba(139, 92, 246, 0.2);
+        border-top-color: #8B5CF6;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      .loading-text {
+        color: white;
+        margin-top: 24px;
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 16px;
+        opacity: 0.8;
+      }
+    </style>
+    <div class="spinner"></div>
+    <div class="loading-text">Loading Friday...</div>
+  </div>
+
+  <!-- Flutter embed will replace this -->
+  <script src="flutter.js" defer></script>
+  <script>
+    window.addEventListener('load', function(ev) {
+      // Download main.dart.js
+      _flutter.loader.loadEntrypoint({
+        serviceWorker: {
+          serviceWorkerVersion: serviceWorkerVersion,
+        },
+        onEntrypointLoaded: async function(engineInitializer) {
+          let appRunner = await engineInitializer.initializeEngine();
+          await appRunner.runApp();
+          
+          // Hide loading screen
+          document.getElementById('loading').style.display = 'none';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

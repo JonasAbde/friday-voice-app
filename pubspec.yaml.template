@@ -1,0 +1,237 @@
+name: friday_voice_app
+description: Production-ready Flutter voice chat application with Friday AI
+publish_to: 'none' # Private app, not published to pub.dev
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+  flutter: ">=3.16.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # ============================================
+  # STATE MANAGEMENT
+  # ============================================
+  flutter_riverpod: ^2.5.1         # State management (5000+ likes, production-ready)
+  riverpod_annotation: ^2.3.5      # Code generation for providers (optional, recommended)
+  
+  # ============================================
+  # VOICE & AUDIO (Core Features)
+  # ============================================
+  speech_to_text: ^7.3.0           # Speech-to-Text (7000+ likes, mature, multi-platform)
+                                    # Platforms: Android, iOS, macOS, Web, Windows (beta)
+                                    # Features: Continuous listening, locales, pause/resume
+  
+  flutter_tts: ^4.2.0              # Text-to-Speech (3000+ likes, comprehensive)
+                                    # Platforms: Android, iOS, Web, Windows, macOS
+                                    # Features: Voice selection, rate/pitch/volume, synthesize to file
+  
+  record: ^5.1.2                   # Audio recording (2000+ likes, modern API)
+                                    # Platforms: Android 23+, iOS 12+, Web, Windows, macOS, Linux
+                                    # Features: Stream/file recording, pause/resume, amplitude, codecs
+  
+  # ============================================
+  # NETWORKING
+  # ============================================
+  web_socket_channel: ^3.0.1       # WebSocket client (official Dart, 1200+ likes)
+                                    # Cross-platform, clean API, no overhead
+  
+  dio: ^5.7.0                      # HTTP client (12000+ likes, feature-rich)
+                                    # Features: Interceptors, retries, FormData, file upload
+  
+  connectivity_plus: ^6.1.0        # Network connectivity status (4000+ likes)
+                                    # Real-time network change detection
+  
+  # ============================================
+  # LOCAL STORAGE & PERSISTENCE
+  # ============================================
+  hive: ^2.2.3                     # NoSQL local database (4000+ likes, fast)
+                                    # Pure Dart, works on all platforms (web uses IndexedDB)
+  
+  hive_flutter: ^1.1.0             # Hive Flutter integration
+                                    # Automatic initialization, easy setup
+  
+  shared_preferences: ^2.3.3       # Simple key-value storage (5000+ likes)
+                                    # For app settings, user preferences
+  
+  path_provider: ^2.1.5            # File system paths (5000+ likes)
+                                    # Platform-aware directories (documents, cache, temp)
+  
+  # ============================================
+  # UTILITIES
+  # ============================================
+  freezed_annotation: ^2.4.4       # Immutable model classes (with freezed codegen)
+                                    # Union types, copyWith, equality
+  
+  json_annotation: ^4.9.0          # JSON serialization annotations
+                                    # Works with json_serializable codegen
+  
+  equatable: ^2.0.7                # Value equality for models (3000+ likes)
+                                    # Alternative to freezed for simpler cases
+  
+  uuid: ^4.5.1                     # Unique ID generation
+                                    # For message IDs, session IDs, etc.
+  
+  logger: ^2.5.0                   # Logging utility (2000+ likes)
+                                    # Pretty console output, log levels
+  
+  intl: ^0.19.0                    # Internationalization & localization
+                                    # Date formatting, number formatting, l10n
+  
+  # ============================================
+  # UI COMPONENTS
+  # ============================================
+  flutter_svg: ^2.0.10             # SVG rendering (4000+ likes)
+                                    # Vector graphics, scalable icons
+  
+  cached_network_image: ^3.4.1     # Image caching (5000+ likes)
+                                    # Network images with disk/memory cache
+  
+  shimmer: ^3.0.0                  # Loading skeleton animations (2000+ likes)
+                                    # Beautiful loading placeholders
+  
+  lottie: ^3.1.3                   # Lottie animations (2000+ likes)
+                                    # JSON-based animations, waveforms, etc.
+  
+  # ============================================
+  # NAVIGATION
+  # ============================================
+  go_router: ^14.6.2               # Declarative routing (4000+ likes, official Flutter)
+                                    # Deep linking, guards, nested navigation
+  
+  # ============================================
+  # PERMISSIONS
+  # ============================================
+  permission_handler: ^11.3.1      # Runtime permission management (4000+ likes)
+                                    # Unified API for all platforms
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  
+  integration_test:
+    sdk: flutter
+  
+  # ============================================
+  # CODE GENERATION
+  # ============================================
+  build_runner: ^2.4.13            # Code generation runner
+                                    # Run: flutter pub run build_runner build
+  
+  riverpod_generator: ^2.4.3       # Riverpod code generation
+                                    # Auto-generate providers from annotations
+  
+  freezed: ^2.5.7                  # Freezed code generation
+                                    # Generate immutable models
+  
+  json_serializable: ^6.8.0        # JSON serialization codegen
+                                    # Auto-generate toJson/fromJson
+  
+  hive_generator: ^2.0.1           # Hive type adapters codegen
+                                    # Auto-generate Hive adapters for models
+  
+  # ============================================
+  # TESTING
+  # ============================================
+  mockito: ^5.4.4                  # Mocking library (3000+ likes)
+                                    # Generate mocks for testing
+  
+  bloc_test: ^9.1.7                # State testing helpers
+                                    # Works with Riverpod too (useful utilities)
+  
+  fake_async: ^1.3.1               # Async testing utilities
+                                    # Control time in tests
+  
+  # ============================================
+  # LINTING & ANALYSIS
+  # ============================================
+  flutter_lints: ^5.0.0            # Official Flutter lints
+                                    # Recommended lint rules
+  
+  # very_good_analysis: ^6.0.0     # Stricter lints (optional, uncomment if desired)
+                                    # More opinionated rules for production apps
+
+flutter:
+  uses-material-design: true
+  
+  # ============================================
+  # ASSETS
+  # ============================================
+  assets:
+    # Images
+    - assets/images/
+    - assets/images/logo/
+    - assets/images/backgrounds/
+    
+    # Icons
+    - assets/icons/
+    
+    # Sounds (optional iOS STT feedback sounds)
+    - assets/sounds/
+    # - assets/sounds/speech_to_text_listening.m4r
+    # - assets/sounds/speech_to_text_cancel.m4r
+    # - assets/sounds/speech_to_text_stop.m4r
+    
+    # Animations (Lottie JSON files)
+    - assets/animations/
+    # - assets/animations/waveform.json
+    # - assets/animations/listening.json
+    # - assets/animations/loading.json
+  
+  # ============================================
+  # FONTS
+  # ============================================
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Inter-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Inter-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Inter-Bold.ttf
+          weight: 700
+
+# ============================================
+# FLUTTER CONFIGURATION
+# ============================================
+flutter_gen:
+  output: lib/gen/ # Generated asset classes
+  line_length: 80
+
+# ============================================
+# NOTES & COMMANDS
+# ============================================
+# 
+# Code Generation:
+#   flutter pub run build_runner build --delete-conflicting-outputs
+#   flutter pub run build_runner watch  # Auto-rebuild on changes
+#
+# Clean & Get:
+#   flutter clean
+#   flutter pub get
+#
+# Testing:
+#   flutter test                        # Unit & widget tests
+#   flutter test integration_test/      # Integration tests
+#
+# Run:
+#   flutter run -d chrome               # Web
+#   flutter run -d macos                # macOS
+#   flutter run -d <device-id>          # Mobile (flutter devices)
+#
+# Build:
+#   flutter build apk --release         # Android APK
+#   flutter build appbundle --release   # Android App Bundle
+#   flutter build ios --release         # iOS
+#   flutter build web --release         # Web
+#   flutter build macos --release       # macOS
+#
+# Platform Setup:
+#   Android: Update android/app/build.gradle → minSdkVersion 23
+#   iOS: Add permissions to ios/Runner/Info.plist
+#   macOS: Add permissions to macos/Runner/Info.plist, enable audio input in entitlements
+#   Web: Ensure browser supports Web Speech API (Chrome/Edge recommended)

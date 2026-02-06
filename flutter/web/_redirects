@@ -1,0 +1,5 @@
+# SPA fallback - all routes to index.html
+/*    /index.html   200
+
+# API proxy (if needed)
+/api/*  https://api.friday.example.com/:splat  200

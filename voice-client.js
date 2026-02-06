@@ -19,10 +19,106 @@ class FridayVoiceClient {
     
     async init() {
         this.setupUI();
+        this.initVoiceOrb(); // Initialize canvas orb
         this.connectWebSocket();
         this.setupSpeechRecognition();
         this.loadVoices(); // Load available voices on init
         await this.setupWakeWord(); // Initialize wake word detection
+    }
+    
+    /**
+     * Initialize animated voice orb (Canvas-based)
+     */
+    initVoiceOrb() {
+        this.orbCanvas = document.getElementById('voice-orb');
+        this.orbCtx = this.orbCanvas.getContext('2d');
+        this.orbState = 'idle'; // idle, listening, processing
+        
+        // Start rendering loop
+        this.renderOrb();
+    }
+    
+    /**
+     * Render voice orb with smooth animations
+     */
+    renderOrb() {
+        const canvas = this.orbCanvas;
+        const ctx = this.orbCtx;
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const time = Date.now() * 0.001; // Time in seconds
+        
+        // Clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Calculate animated radius based on state
+        let baseRadius = 70;
+        let radius = baseRadius;
+        
+        if (this.orbState === 'idle') {
+            // Breathing effect
+            radius = baseRadius + Math.sin(time * 0.5) * 3;
+        } else if (this.orbState === 'listening') {
+            // Pulsing effect (faster)
+            radius = baseRadius + Math.sin(time * 2) * 8;
+        } else if (this.orbState === 'processing') {
+            // Processing (constant + slight pulse)
+            radius = baseRadius + Math.sin(time * 3) * 5;
+        }
+        
+        // Gradient fill (purple)
+        const gradient = ctx.createRadialGradient(
+            centerX, centerY, 0,
+            centerX, centerY, radius
+        );
+        gradient.addColorStop(0, '#764ba2'); // Deep purple (center)
+        gradient.addColorStop(0.6, '#667eea'); // Soft purple
+        gradient.addColorStop(1, 'rgba(102, 126, 234, 0.3)'); // Fade out
+        
+        // Draw main orb
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+        
+        // Inner glow ring (optional detail)
+        if (this.orbState === 'listening' || this.orbState === 'processing') {
+            const innerGradient = ctx.createRadialGradient(
+                centerX, centerY, radius * 0.6,
+                centerX, centerY, radius * 0.9
+            );
+            innerGradient.addColorStop(0, 'rgba(255,255,255,0)');
+            innerGradient.addColorStop(1, 'rgba(255,255,255,0.2)');
+            
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius * 0.8, 0, Math.PI * 2);
+            ctx.strokeStyle = innerGradient;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+        
+        // Continue animation loop
+        requestAnimationFrame(() => this.renderOrb());
+    }
+    
+    /**
+     * Update orb state (idle, listening, processing)
+     */
+    setOrbState(state) {
+        this.orbState = state;
+        const container = document.getElementById('voice-orb-container');
+        
+        // Remove all state classes
+        container.classList.remove('orb-breathing', 'orb-pulsing', 'orb-spinning');
+        
+        // Add appropriate class
+        if (state === 'idle') {
+            container.classList.add('orb-breathing');
+        } else if (state === 'listening') {
+            container.classList.add('orb-pulsing');
+        } else if (state === 'processing') {
+            container.classList.add('orb-spinning');
+        }
     }
     
     /**
@@ -266,6 +362,7 @@ class FridayVoiceClient {
         }
         
         this.isRecording = true;
+        this.setOrbState('listening'); // Update orb to listening state
         this.micBtn.classList.add('recording', 'pulse-mic-active');
         this.micBtn.classList.remove('wake-active');
         this.updateStatus('Lytter... 🎤', true);
@@ -283,6 +380,7 @@ class FridayVoiceClient {
     
     stopRecording() {
         this.isRecording = false;
+        this.setOrbState('idle'); // Return orb to idle state
         this.micBtn.classList.remove('recording', 'pulse-mic-active');
         this.setMicGlow(false);
         this.animateWaveform(false);
@@ -306,11 +404,12 @@ class FridayVoiceClient {
         this.addMessageBubble('user', transcript);
         
         // Show processing state
+        this.setOrbState('processing'); // Update orb to processing state
         this.thinkingIndicator.classList.remove('hidden');
         this.thinkingIndicator.classList.add('flex');
         this.micBtn.classList.add('processing');
         this.micBtn.classList.remove('recording', 'wake-active');
-        this.updateStatus('🧠 Friday is thinking...', true);
+        this.updateStatus('🧠 Friday tænker...', true);
         this.updateStatusDot('processing');
         this.setMicGlow(true);
         
@@ -335,6 +434,7 @@ class FridayVoiceClient {
         this.thinkingIndicator.classList.remove('flex');
         this.micBtn.classList.remove('processing');
         this.setMicGlow(false);
+        this.setOrbState('idle'); // Return to idle after processing
         
         // Restore wake word state if enabled
         if (this.wakeWordEnabled) {

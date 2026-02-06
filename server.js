@@ -149,17 +149,19 @@ class FridayVoiceServer {
     
     /**
      * Send message to Friday AI via OpenClaw agent command
+     * Uses dedicated 'voice-interface' session to avoid conflicts with main session
      * @param {string} message - User's message text
      * @returns {Promise<string>} Friday's response
      */
     async askFriday(message) {
-        // Call Friday via OpenClaw CLI (correct command: "agent" not "chat")
         return new Promise((resolve, reject) => {
             // Escape double quotes in message
             const escapedMessage = message.replace(/"/g, '\\"');
-            const command = `openclaw agent --agent main --message "${escapedMessage}"`;
             
-            console.log('🤖 Calling Friday AI...');
+            // Use dedicated voice session (NOT main - that's for Discord)
+            const command = `openclaw agent --session-id voice-interface --message "${escapedMessage}"`;
+            
+            console.log('🤖 Calling Friday AI (voice session)...');
             
             exec(command, { maxBuffer: 1024 * 1024, timeout: 30000 }, (error, stdout, stderr) => {
                 if (error) {

@@ -1,0 +1,19 @@
+{
+  "build": {
+    "command": "cd flutter && flutter pub get && flutter build web --release",
+    "cwd": "/",
+    "output": "flutter/build/web"
+  },
+  "routes": [
+    {
+      "path": "/*",
+      "method": "GET",
+      "serve": "/index.html"
+    }
+  ],
+  "headers": {
+    "/*": {
+      "Cache-Control": "public, max-age=3600"
+    }
+  }
+}

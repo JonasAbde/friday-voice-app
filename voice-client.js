@@ -66,14 +66,29 @@ class FridayVoiceClient {
             radius = baseRadius + Math.sin(time * 3) * 5;
         }
         
-        // Gradient fill (purple)
+        // Outer glow (larger, more visible)
+        const outerGlow = ctx.createRadialGradient(
+            centerX, centerY, radius * 0.5,
+            centerX, centerY, radius * 1.8
+        );
+        outerGlow.addColorStop(0, 'rgba(102, 126, 234, 0.4)');
+        outerGlow.addColorStop(0.5, 'rgba(102, 126, 234, 0.2)');
+        outerGlow.addColorStop(1, 'rgba(102, 126, 234, 0)');
+        
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius * 1.8, 0, Math.PI * 2);
+        ctx.fillStyle = outerGlow;
+        ctx.fill();
+        
+        // Main orb gradient (brighter purple)
         const gradient = ctx.createRadialGradient(
             centerX, centerY, 0,
             centerX, centerY, radius
         );
-        gradient.addColorStop(0, '#764ba2'); // Deep purple (center)
-        gradient.addColorStop(0.6, '#667eea'); // Soft purple
-        gradient.addColorStop(1, 'rgba(102, 126, 234, 0.3)'); // Fade out
+        gradient.addColorStop(0, '#a78bfa'); // Bright purple (center)
+        gradient.addColorStop(0.5, '#8b5cf6'); // Medium purple
+        gradient.addColorStop(0.8, '#7c3aed'); // Deep purple
+        gradient.addColorStop(1, 'rgba(124, 58, 237, 0.5)'); // Fade out
         
         // Draw main orb
         ctx.beginPath();
@@ -81,19 +96,32 @@ class FridayVoiceClient {
         ctx.fillStyle = gradient;
         ctx.fill();
         
-        // Inner glow ring (optional detail)
+        // Inner highlight (makes it look 3D)
+        const highlight = ctx.createRadialGradient(
+            centerX - radius * 0.3, centerY - radius * 0.3, 0,
+            centerX, centerY, radius * 0.6
+        );
+        highlight.addColorStop(0, 'rgba(255,255,255,0.4)');
+        highlight.addColorStop(1, 'rgba(255,255,255,0)');
+        
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+        ctx.fillStyle = highlight;
+        ctx.fill();
+        
+        // Inner glow ring (active states)
         if (this.orbState === 'listening' || this.orbState === 'processing') {
             const innerGradient = ctx.createRadialGradient(
                 centerX, centerY, radius * 0.6,
                 centerX, centerY, radius * 0.9
             );
             innerGradient.addColorStop(0, 'rgba(255,255,255,0)');
-            innerGradient.addColorStop(1, 'rgba(255,255,255,0.2)');
+            innerGradient.addColorStop(1, 'rgba(255,255,255,0.3)');
             
             ctx.beginPath();
             ctx.arc(centerX, centerY, radius * 0.8, 0, Math.PI * 2);
             ctx.strokeStyle = innerGradient;
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 3;
             ctx.stroke();
         }
         
@@ -229,6 +257,8 @@ class FridayVoiceClient {
         this.volumeValue = document.getElementById('volume-value');
         this.sensitivitySlider = document.getElementById('sensitivity-slider');
         this.sensitivityValue = document.getElementById('sensitivity-value');
+        this.debugToggle = document.getElementById('debug-toggle');
+        this.debugInfo = document.getElementById('debug-info');
         
         // Event listeners
         this.micBtn.addEventListener('click', () => this.toggleRecording());
@@ -241,6 +271,15 @@ class FridayVoiceClient {
         this.settingsModal.addEventListener('click', (e) => {
             if (e.target === this.settingsModal) {
                 this.closeSettingsModal();
+            }
+        });
+        
+        // Debug toggle
+        this.debugToggle.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                this.debugInfo.classList.remove('hidden');
+            } else {
+                this.debugInfo.classList.add('hidden');
             }
         });
         

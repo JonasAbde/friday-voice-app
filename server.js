@@ -133,6 +133,11 @@ class FridayVoiceServer {
         console.log('📨 Received:', message.type);
         
         switch (message.type) {
+            case 'ping':
+                // Respond to ping for connection quality monitoring
+                this.send(ws, { type: 'pong' });
+                break;
+                
             case 'voice_message':
                 await this.processVoiceMessage(ws, message.transcript);
                 break;

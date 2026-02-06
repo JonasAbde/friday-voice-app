@@ -447,11 +447,14 @@
 <body class="flex flex-col items-center justify-center min-h-screen p-4 md:p-8" style="padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);">
 
     <!-- Status Badge (Top) -->
-    <div class="mb-8">
+    <div class="mb-8 flex flex-col items-center gap-2">
         <div class="status-badge">
             <div class="status-dot pulsing" id="status-dot"></div>
             <span id="status-text">Forbinder...</span>
         </div>
+        
+        <!-- Connection Quality Indicator -->
+        <div class="text-xs font-mono" id="connection-quality">🔄 Måler...</div>
     </div>
 
     <!-- Voice Orb (Center) -->

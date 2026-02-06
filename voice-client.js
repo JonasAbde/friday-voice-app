@@ -20,6 +20,10 @@ class FridayVoiceClient {
         // Mobile detection
         this.isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         
+        // Connection quality tracking
+        this.pingMs = null;
+        this.lastPingTime = null;
+        
         this.init();
     }
     
@@ -442,22 +446,66 @@ class FridayVoiceClient {
         this.ws.onopen = () => {
             this.setState('idle'); // Set initial state
             this.addMessageBubble('friday', 'Klar til at tale! 🎤');
+            this.startPingMonitoring(); // Start connection quality monitoring
         };
         
         this.ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
+            
+            // Handle ping responses
+            if (data.type === 'pong' && this.lastPingTime) {
+                this.pingMs = Date.now() - this.lastPingTime;
+                this.updateConnectionQuality();
+            }
+            
             this.handleServerMessage(data);
         };
         
         this.ws.onerror = (error) => {
             this.updateStatus('Connection error 🔴', false);
-            this.showError('Failed to connect to Friday server');
+            this.showNotification('Forbindelsesfejl - prøver igen...', 'error', true);
         };
         
         this.ws.onclose = () => {
             this.updateStatus('Disconnected 🔴', false);
+            this.pingMs = null;
+            this.updateConnectionQuality();
             setTimeout(() => this.connectWebSocket(), 3000); // Auto-reconnect
         };
+    }
+    
+    /**
+     * Start ping monitoring for connection quality
+     */
+    startPingMonitoring() {
+        setInterval(() => {
+            if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+                this.lastPingTime = Date.now();
+                this.ws.send(JSON.stringify({ type: 'ping' }));
+            }
+        }, 5000); // Ping every 5 seconds
+    }
+    
+    /**
+     * Update connection quality indicator
+     */
+    updateConnectionQuality() {
+        const indicator = document.getElementById('connection-quality');
+        if (!indicator) return;
+        
+        if (this.pingMs === null) {
+            indicator.innerHTML = '🔴 Offline';
+            indicator.className = 'text-red-500';
+        } else if (this.pingMs < 100) {
+            indicator.innerHTML = `🟢 ${this.pingMs}ms`;
+            indicator.className = 'text-green-500';
+        } else if (this.pingMs < 300) {
+            indicator.innerHTML = `🟡 ${this.pingMs}ms`;
+            indicator.className = 'text-yellow-500';
+        } else {
+            indicator.innerHTML = `🔴 ${this.pingMs}ms (langsom)`;
+            indicator.className = 'text-red-500';
+        }
     }
     
     setupSpeechRecognition() {

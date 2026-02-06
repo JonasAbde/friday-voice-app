@@ -108,11 +108,6 @@ class FridayVoiceClient {
             this.updateStatusDot('listening');
         }
     }
-            this.wakeWordEngine.stopListening();
-            this.wakeWordEnabled = false;
-            this.updateStatus('Wake word disabled', true);
-        }
-    }
     
     setupUI() {
         // Main controls
@@ -618,12 +613,6 @@ class FridayVoiceClient {
                 this.statusDot.classList.add('status-connected');
         }
     }
-}
-
-// Initialize Friday Voice Client when page loads
-document.addEventListener('DOMContentLoaded', () => {
-    window.fridayClient = new FridayVoiceClient();
-});
 
     /**
      * Enhanced waveform animation
@@ -680,12 +669,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // Scroll to bottom
         chat.scrollTop = chat.scrollHeight;
     }
-}
-
-// Enhance existing addMessage to use new bubble design
-FridayVoiceClient.prototype.addMessage = function(role, text) {
-    this.addMessageBubble(role, text);
-};
 
     /**
      * Open settings modal
@@ -702,3 +685,14 @@ FridayVoiceClient.prototype.addMessage = function(role, text) {
         this.settingsModal.classList.add('hidden');
         this.settingsModal.classList.remove('flex');
     }
+}
+
+// Enhance existing addMessage to use new bubble design
+FridayVoiceClient.prototype.addMessage = function(role, text) {
+    this.addMessageBubble(role, text);
+};
+
+// Initialize Friday Voice Client when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    window.fridayClient = new FridayVoiceClient();
+});

@@ -248,6 +248,14 @@ class FridayVoiceClient {
         this.settingsModal = document.getElementById('settings-modal');
         this.closeSettings = document.getElementById('close-settings');
         
+        // Debug: Verify elements exist
+        if (!this.settingsModal) {
+            console.error('❌ Settings modal not found!');
+        }
+        if (!this.closeSettings) {
+            console.error('❌ Close settings button not found!');
+        }
+        
         // Mode toggles
         this.modeWake = document.getElementById('mode-wake');
         this.modePush = document.getElementById('mode-push');
@@ -265,14 +273,25 @@ class FridayVoiceClient {
         this.stopBtn.addEventListener('click', () => this.stopRecording());
         this.replayBtn.addEventListener('click', () => this.replayLastResponse());
         this.settingsBtn.addEventListener('click', () => this.openSettings());
-        this.closeSettings.addEventListener('click', () => this.closeSettingsModal());
+        
+        // Close settings button
+        if (this.closeSettings) {
+            this.closeSettings.addEventListener('click', (e) => {
+                console.log('✅ Close button clicked!');
+                e.preventDefault();
+                e.stopPropagation();
+                this.closeSettingsModal();
+            });
+        }
         
         // Close modal on outside click
-        this.settingsModal.addEventListener('click', (e) => {
-            if (e.target === this.settingsModal) {
-                this.closeSettingsModal();
-            }
-        });
+        if (this.settingsModal) {
+            this.settingsModal.addEventListener('click', (e) => {
+                if (e.target === this.settingsModal) {
+                    this.closeSettingsModal();
+                }
+            });
+        }
         
         // Debug toggle
         this.debugToggle.addEventListener('change', (e) => {
@@ -813,6 +832,7 @@ class FridayVoiceClient {
      * Open settings modal
      */
     openSettings() {
+        console.log('📖 Opening settings modal...');
         this.settingsModal.classList.remove('hidden');
         this.settingsModal.classList.add('flex');
     }
@@ -821,6 +841,7 @@ class FridayVoiceClient {
      * Close settings modal
      */
     closeSettingsModal() {
+        console.log('❌ Closing settings modal...');
         this.settingsModal.classList.add('hidden');
         this.settingsModal.classList.remove('flex');
     }
